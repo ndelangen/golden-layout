@@ -11,18 +11,18 @@
  */
 export default class EventEmitter {
     constructor() {
-    	this._mSubscriptions = {};
-    	this._mSubscriptions[EventEmitter.ALL_EVENT] = [];
+        this._mSubscriptions = {};
+        this._mSubscriptions[EventEmitter.ALL_EVENT] = [];
 
-    	/**
-    	 * Alias for unbind
-    	 */
-    	this.off = this.unbind;
+        /**
+         * Alias for unbind
+         */
+        this.off = this.unbind;
 
-    	/**
-    	 * Alias for emit
-    	 */
-    	this.trigger = this.emit;
+        /**
+         * Alias for emit
+         */
+        this.trigger = this.emit;
     }
 
     /**
@@ -119,7 +119,7 @@ export default class EventEmitter {
  * usage
  *
  * myEmitter.on( EventEmitter.ALL_EVENT, function( eventName, argsArray ){
- * 	//do stuff
+ *     //do stuff
  * });
  *
  * @type {String}

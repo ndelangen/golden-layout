@@ -2,27 +2,27 @@
 testTools = {};
 
 testTools.createLayout = function( config ) {
-	var myLayout = new window.GoldenLayout( config );
+    var myLayout = new window.GoldenLayout( config );
 
-	myLayout.registerComponent( 'testComponent', testTools.TestComponent );
+    myLayout.registerComponent( 'testComponent', testTools.TestComponent );
 
-	myLayout.init();
+    myLayout.init();
 
 
-	waitsFor(function(){
-		return myLayout.isInitialised;
-	});
+    waitsFor(function(){
+        return myLayout.isInitialised;
+    });
 
-	return myLayout;
+    return myLayout;
 };
 
 testTools.TestComponent = function( container, state ){
-	if ( state === undefined ) {
-		container.getElement().html( 'that worked' );
-	} else {
-		container.getElement().html( state.html );
-	}
-	this.isTestComponentInstance = true;
+    if ( state === undefined ) {
+        container.getElement().html( 'that worked' );
+    } else {
+        container.getElement().html( state.html );
+    }
+    this.isTestComponentInstance = true;
 };
 
 /**
@@ -34,32 +34,32 @@ testTools.TestComponent = function( container, state ){
  *
  * @param   {String} path
  * @param   {GoldenLayout} layout
- * @param	{Function} expect Jasmine expect function
+ * @param    {Function} expect Jasmine expect function
  *
  * @returns {AbstractContentItem}
  */
 testTools.verifyPath = function( path, layout, expect ) {
-	expect( layout.root ).toBeDefined();
-	expect( layout.root.contentItems.length ).toBe( 1 );
+    expect( layout.root ).toBeDefined();
+    expect( layout.root.contentItems.length ).toBe( 1 );
 
-	var pathSegments = path.split( '.' ),
-		node = layout.root.contentItems[ 0 ],
-		i;
+    var pathSegments = path.split( '.' ),
+        node = layout.root.contentItems[ 0 ],
+        i;
 
-	for( i = 0; i < pathSegments.length; i++ ) {
+    for( i = 0; i < pathSegments.length; i++ ) {
 
-		if( isNaN( pathSegments[ i ] ) ) {
-			expect( node.type ).toBe( pathSegments[ i ] );
-		} else {
-			node = node.contentItems[ parseInt( pathSegments[ i ], 10 ) ];
+        if( isNaN( pathSegments[ i ] ) ) {
+            expect( node.type ).toBe( pathSegments[ i ] );
+        } else {
+            node = node.contentItems[ parseInt( pathSegments[ i ], 10 ) ];
 
-			expect( node ).toBeDefined();
+            expect( node ).toBeDefined();
 
-			if( node === undefined ) {
-				return null;
-			}
-		}
-	}
+            if( node === undefined ) {
+                return null;
+            }
+        }
+    }
 
-	return node;
+    return node;
 };

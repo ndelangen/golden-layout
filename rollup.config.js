@@ -7,12 +7,12 @@ const globals = {
 };
 
 export default {
-	input: 'src/js/index.js',
-	plugins: [],
+    input: 'src/js/index.js',
+    plugins: [],
     external: [ 'jquery', 'react', 'react-dom' ],
-	output: [
+    output: [
         { file: 'dist/goldenlayout.js', format: 'umd', sourcemap, name, globals },
-		{ file: 'dist/goldenlayout.cjs.js', format: 'cjs', sourcemap, name },
+        { file: 'dist/goldenlayout.cjs.js', format: 'cjs', sourcemap, name },
         { file: 'dist/goldenlayout.es.js', format: 'es', sourcemap, name }
-	]
+    ]
 }

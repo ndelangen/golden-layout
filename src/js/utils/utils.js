@@ -1,53 +1,53 @@
 import $ from 'jquery';
 
 export function createObject( prototype ) {
-	return Object.create( prototype );
+    return Object.create( prototype );
 };
 
 export function objectKeys( object ) {
-	var keys, key;
+    var keys, key;
 
-	if( typeof Object.keys === 'function' ) {
-		return Object.keys( object );
-	} else {
-		keys = [];
-		for( key in object ) {
-			keys.push( key );
-		}
-		return keys;
-	}
+    if( typeof Object.keys === 'function' ) {
+        return Object.keys( object );
+    } else {
+        keys = [];
+        for( key in object ) {
+            keys.push( key );
+        }
+        return keys;
+    }
 };
 
 export function getHashValue( key ) {
-	var matches = location.hash.match( new RegExp( key + '=([^&]*)' ) );
-	return matches ? matches[ 1 ] : null;
+    var matches = location.hash.match( new RegExp( key + '=([^&]*)' ) );
+    return matches ? matches[ 1 ] : null;
 };
 
 export function getQueryStringParam( param ) {
-	if( window.location.hash ) {
-		return getHashValue( param );
-	} else if( !window.location.search ) {
-		return null;
-	}
+    if( window.location.hash ) {
+        return getHashValue( param );
+    } else if( !window.location.search ) {
+        return null;
+    }
 
-	var keyValuePairs = window.location.search.substr( 1 ).split( '&' ),
-		params = {},
-		pair,
-		i;
+    var keyValuePairs = window.location.search.substr( 1 ).split( '&' ),
+        params = {},
+        pair,
+        i;
 
-	for( i = 0; i < keyValuePairs.length; i++ ) {
-		pair = keyValuePairs[ i ].split( '=' );
-		params[ pair[ 0 ] ] = pair[ 1 ];
-	}
+    for( i = 0; i < keyValuePairs.length; i++ ) {
+        pair = keyValuePairs[ i ].split( '=' );
+        params[ pair[ 0 ] ] = pair[ 1 ];
+    }
 
-	return params[ param ] || null;
+    return params[ param ] || null;
 };
 
 export function copy( target, source ) {
-	for( var key in source ) {
-		target[ key ] = source[ key ];
-	}
-	return target;
+    for( var key in source ) {
+        target[ key ] = source[ key ];
+    }
+    return target;
 };
 
 /**
@@ -61,84 +61,84 @@ export function copy( target, source ) {
  * @returns {void}
  */
  export function animFrame( fn ) {
-	return ( window.requestAnimationFrame ||
-	window.webkitRequestAnimationFrame ||
-	window.mozRequestAnimationFrame ||
-	function( callback ) {
-		window.setTimeout( callback, 1000 / 60 );
-	})( function() {
-		fn();
-	} );
+    return ( window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    function( callback ) {
+        window.setTimeout( callback, 1000 / 60 );
+    })( function() {
+        fn();
+    } );
 };
 
 export function indexOf( needle, haystack ) {
-	if( !( haystack instanceof Array ) ) {
-		throw new Error( 'Haystack is not an Array' );
-	}
+    if( !( haystack instanceof Array ) ) {
+        throw new Error( 'Haystack is not an Array' );
+    }
 
-	if( haystack.indexOf ) {
-		return haystack.indexOf( needle );
-	} else {
-		for( var i = 0; i < haystack.length; i++ ) {
-			if( haystack[ i ] === needle ) {
-				return i;
-			}
-		}
-		return -1;
-	}
+    if( haystack.indexOf ) {
+        return haystack.indexOf( needle );
+    } else {
+        for( var i = 0; i < haystack.length; i++ ) {
+            if( haystack[ i ] === needle ) {
+                return i;
+            }
+        }
+        return -1;
+    }
 };
 
 export function isFunction( obj ) {
-	return typeof obj == 'function' || false;
+    return typeof obj == 'function' || false;
 };
 
 
 export function fnBind( fn, context, boundArgs ) {
 
-	if( Function.prototype.bind !== undefined ) {
-		return Function.prototype.bind.apply( fn, [ context ].concat( boundArgs || [] ) );
-	}
+    if( Function.prototype.bind !== undefined ) {
+        return Function.prototype.bind.apply( fn, [ context ].concat( boundArgs || [] ) );
+    }
 
-	var bound = function() {
+    var bound = function() {
 
-		// Join the already applied arguments to the now called ones (after converting to an array again).
-		var args = ( boundArgs || [] ).concat( Array.prototype.slice.call( arguments, 0 ) );
+        // Join the already applied arguments to the now called ones (after converting to an array again).
+        var args = ( boundArgs || [] ).concat( Array.prototype.slice.call( arguments, 0 ) );
 
-		// If not being called as a constructor
-		if( !(this instanceof bound) ) {
-			// return the result of the function called bound to target and partially applied.
-			return fn.apply( context, args );
-		}
-		// If being called as a constructor, apply the function bound to self.
-		fn.apply( this, args );
-	};
-	// Attach the prototype of the function to our newly created function.
-	bound.prototype = fn.prototype;
-	return bound;
+        // If not being called as a constructor
+        if( !(this instanceof bound) ) {
+            // return the result of the function called bound to target and partially applied.
+            return fn.apply( context, args );
+        }
+        // If being called as a constructor, apply the function bound to self.
+        fn.apply( this, args );
+    };
+    // Attach the prototype of the function to our newly created function.
+    bound.prototype = fn.prototype;
+    return bound;
 };
 
 export function removeFromArray( item, array ) {
-	var index = indexOf(item, array );
+    var index = indexOf(item, array );
 
-	if( index === -1 ) {
-		throw new Error( 'Can\'t remove item from array. Item is not in the array' );
-	}
+    if( index === -1 ) {
+        throw new Error( 'Can\'t remove item from array. Item is not in the array' );
+    }
 
-	array.splice( index, 1 );
+    array.splice( index, 1 );
 };
 
 export function now() {
-	if( typeof Date.now === 'function' ) {
-		return Date.now();
-	} else {
-		return new Date().getTime();
-	}
+    if( typeof Date.now === 'function' ) {
+        return Date.now();
+    } else {
+        return new Date().getTime();
+    }
 };
 
 export function getUniqueId() {
-	return ( Math.random() * 1000000000000000 )
-		.toString( 36 )
-		.replace( '.', '' );
+    return ( Math.random() * 1000000000000000 )
+        .toString( 36 )
+        .replace( '.', '' );
 };
 
 /**
@@ -153,20 +153,20 @@ export function getUniqueId() {
  */
  export function filterXss( input, keepTags ) {
 
-	var output = input
-		.replace( /javascript/gi, 'j&#97;vascript' )
-		.replace( /expression/gi, 'expr&#101;ssion' )
-		.replace( /onload/gi, 'onlo&#97;d' )
-		.replace( /script/gi, '&#115;cript' )
-		.replace( /onerror/gi, 'on&#101;rror' );
+    var output = input
+        .replace( /javascript/gi, 'j&#97;vascript' )
+        .replace( /expression/gi, 'expr&#101;ssion' )
+        .replace( /onload/gi, 'onlo&#97;d' )
+        .replace( /script/gi, '&#115;cript' )
+        .replace( /onerror/gi, 'on&#101;rror' );
 
-	if( keepTags === true ) {
-		return output;
-	} else {
-		return output
-			.replace( />/g, '&gt;' )
-			.replace( /</g, '&lt;' );
-	}
+    if( keepTags === true ) {
+        return output;
+    } else {
+        return output
+            .replace( />/g, '&gt;' )
+            .replace( /</g, '&lt;' );
+    }
 };
 
 /**
@@ -177,5 +177,5 @@ export function getUniqueId() {
  * @returns {String} input without tags
  */
  export function stripTags( input ) {
-	return $.trim( input.replace( /(<([^>]+)>)/ig, '' ) );
+    return $.trim( input.replace( /(<([^>]+)>)/ig, '' ) );
 };
