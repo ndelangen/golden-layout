@@ -16,7 +16,7 @@ import $ from 'jquery';
  *
  * @returns {void}
  */
-export default class GoldenLayout extends utills.EventEmitter {
+export default class GoldenLayout extends utils.EventEmitter {
 
     /*
      * @public
