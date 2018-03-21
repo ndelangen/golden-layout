@@ -7,15 +7,14 @@
         "A multi-screen javascript Layout manager https://golden-layout.com",
     "main": "./dist/goldenlayout.js",
     "module": "./dist/goldenlayout.es.js",
-    "directories": {
-        "test": "test"
-    },
     "scripts": {
+        "clean": "rm -rf dist",
         "build": "rollup -c",
         "build:watch": "npm run build -- --watch",
         "test": "karma start --single-run",
         "test:watch": "karma start",
-        "precommit": "pretty-quick --staged"
+        "precommit": "pretty-quick --staged",
+        "prepublishOnly": "npm run clean && npm run build"
     },
     "repository": {
         "type": "git",
@@ -37,6 +36,7 @@
             "dist/goldenlayout": ["jquery"]
         }
     },
+    "files": ["src", "dist", "index.d.ts"],
     "dependencies": {
         "jquery": "*"
     },
