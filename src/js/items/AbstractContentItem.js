@@ -44,7 +44,7 @@ export default class AbstractContentItem extends EventEmitter {
 
         this.layoutManager = layoutManager;
         this._pendingEventPropagations = {};
-        this._throttledEvents = [ 'stateChanged' ];
+        this._throttledEvents = ['stateChanged'];
 
         this.on(EventEmitter.ALL_EVENT, this._propagateEvent, this);
 
@@ -77,13 +77,17 @@ export default class AbstractContentItem extends EventEmitter {
         var i;
 
         if (bottomUp !== true && skipSelf !== true) {
-            this[ functionName ].apply(this, functionArguments || []);
+            this[functionName].apply(this, functionArguments || []);
         }
-        for(i = 0; i < this.contentItems.length; i++) {
-            this.contentItems[ i ].callDownwards(functionName, functionArguments, bottomUp);
+        for (i = 0; i < this.contentItems.length; i++) {
+            this.contentItems[i].callDownwards(
+                functionName,
+                functionArguments,
+                bottomUp
+            );
         }
         if (bottomUp === true && skipSelf !== true) {
-            this[ functionName ].apply(this, functionArguments || []);
+            this[functionName].apply(this, functionArguments || []);
         }
     }
 
@@ -104,14 +108,14 @@ export default class AbstractContentItem extends EventEmitter {
          * Make sure the content item to be removed is actually a child of this item
          */
         if (index === -1) {
-            throw new Error('Can\'t remove child item. Unknown content item');
+            throw new Error("Can't remove child item. Unknown content item");
         }
 
         /**
          * Call ._$destroy on the content item. This also calls ._$destroy on all its children
          */
         if (keepChild !== true) {
-            this.contentItems[ index ]._$destroy();
+            this.contentItems[index]._$destroy();
         }
 
         /**
@@ -160,7 +164,10 @@ export default class AbstractContentItem extends EventEmitter {
         this.config.content.splice(index, 0, contentItem.config);
         contentItem.parent = this;
 
-        if (contentItem.parent.isInitialised === true && contentItem.isInitialised === false) {
+        if (
+            contentItem.parent.isInitialised === true &&
+            contentItem.isInitialised === false
+        ) {
             contentItem._$init();
         }
     }
@@ -175,17 +182,18 @@ export default class AbstractContentItem extends EventEmitter {
      * @returns {void}
      */
     replaceChild(oldChild, newChild, _$destroyOldChild) {
-
         newChild = this.layoutManager._$normalizeContentItem(newChild);
 
         var index = this.contentItems.indexOf(oldChild),
-            parentNode = oldChild.element[ 0 ].parentNode;
+            parentNode = oldChild.element[0].parentNode;
 
         if (index === -1) {
-            throw new Error('Can\'t replace child. oldChild is not child of this');
+            throw new Error(
+                "Can't replace child. oldChild is not child of this"
+            );
         }
 
-        parentNode.replaceChild(newChild.element[ 0 ], oldChild.element[ 0 ]);
+        parentNode.replaceChild(newChild.element[0], oldChild.element[0]);
 
         /*
          * Optionally destroy the old content item
@@ -198,18 +206,21 @@ export default class AbstractContentItem extends EventEmitter {
         /*
          * Wire the new contentItem into the tree
          */
-        this.contentItems[ index ] = newChild;
+        this.contentItems[index] = newChild;
         newChild.parent = this;
 
         /*
          * Update tab reference
          */
         if (this.isStack) {
-            this.header.tabs[ index ].contentItem = newChild;
+            this.header.tabs[index].contentItem = newChild;
         }
 
         //TODO This doesn't update the config... refactor to leave item nodes untouched after creation
-        if (newChild.parent.isInitialised === true && newChild.isInitialised === false) {
+        if (
+            newChild.parent.isInitialised === true &&
+            newChild.isInitialised === false
+        ) {
             newChild._$init();
         }
 
@@ -328,7 +339,7 @@ export default class AbstractContentItem extends EventEmitter {
         if (!this.config.id) {
             this.config.id = id;
         } else if (typeof this.config.id === 'string') {
-            this.config.id = [ this.config.id, id ];
+            this.config.id = [this.config.id, id];
         } else if (this.config.id instanceof Array) {
             this.config.id.push(id);
         }
@@ -362,13 +373,12 @@ export default class AbstractContentItem extends EventEmitter {
     getItemsByFilter(filter) {
         var result = [],
             next = function(contentItem) {
-                for(var i = 0; i < contentItem.contentItems.length; i++) {
-
-                    if (filter(contentItem.contentItems[ i ]) === true) {
-                        result.push(contentItem.contentItems[ i ]);
+                for (var i = 0; i < contentItem.contentItems.length; i++) {
+                    if (filter(contentItem.contentItems[i]) === true) {
+                        result.push(contentItem.contentItems[i]);
                     }
 
-                    next(contentItem.contentItems[ i ]);
+                    next(contentItem.contentItems[i]);
                 }
             };
 
@@ -391,12 +401,15 @@ export default class AbstractContentItem extends EventEmitter {
     }
 
     getComponentsByName(componentName) {
-        var components = this._$getItemsByProperty('componentName', componentName),
+        var components = this._$getItemsByProperty(
+                'componentName',
+                componentName
+            ),
             instances = [],
             i;
 
-        for(i = 0; i < components.length; i++) {
-            instances.push(components[ i ].instance);
+        for (i = 0; i < components.length; i++) {
+            instances.push(components[i].instance);
         }
 
         return instances;
@@ -407,7 +420,7 @@ export default class AbstractContentItem extends EventEmitter {
      ****************************************/
     _$getItemsByProperty(key, value) {
         return this.getItemsByFilter(function(item) {
-            return item[ key ] === value;
+            return item[key] === value;
         });
     }
 
@@ -440,11 +453,11 @@ export default class AbstractContentItem extends EventEmitter {
             activeContentItem,
             i;
 
-        for(i = 0; i < stacks.length; i++) {
-            activeContentItem = stacks[ i ].getActiveContentItem();
+        for (i = 0; i < stacks.length; i++) {
+            activeContentItem = stacks[i].getActiveContentItem();
 
             if (activeContentItem && activeContentItem.isComponent) {
-                activeContentItem.container[ methodName ]();
+                activeContentItem.container[methodName]();
             }
         }
     }
@@ -504,8 +517,8 @@ export default class AbstractContentItem extends EventEmitter {
         var i;
         this.setSize();
 
-        for(i = 0; i < this.contentItems.length; i++) {
-            this.childElementContainer.append(this.contentItems[ i ].element);
+        for (i = 0; i < this.contentItems.length; i++) {
+            this.childElementContainer.append(this.contentItems[i].element);
         }
 
         this.isInitialised = true;
@@ -540,8 +553,11 @@ export default class AbstractContentItem extends EventEmitter {
             throw new ConfigurationError('content must be an Array', config);
         }
 
-        for(i = 0; i < config.content.length; i++) {
-            oContentItem = this.layoutManager.createContentItem(config.content[ i ], this);
+        for (i = 0; i < config.content.length; i++) {
+            oContentItem = this.layoutManager.createContentItem(
+                config.content[i],
+                this
+            );
             this.contentItems.push(oContentItem);
         }
     }
@@ -554,10 +570,9 @@ export default class AbstractContentItem extends EventEmitter {
      * @returns {configuration item node} extended config
      */
     _extendItemNode(config) {
-
-        for(var key in itemDefaultConfig) {
-            if (config[ key ] === undefined) {
-                config[ key ] = itemDefaultConfig[ key ];
+        for (var key in itemDefaultConfig) {
+            if (config[key] === undefined) {
+                config[key] = itemDefaultConfig[key];
             }
         }
 
@@ -574,10 +589,11 @@ export default class AbstractContentItem extends EventEmitter {
      * @returns {void}
      */
     _propagateEvent(name, event) {
-        if (event instanceof BubblingEvent &&
+        if (
+            event instanceof BubblingEvent &&
             event.isPropagationStopped === false &&
-            this.isInitialised === true) {
-
+            this.isInitialised === true
+        ) {
             /**
              * In some cases (e.g. if an element is created from a DragSource) it
              * doesn't have a parent and is not below root. If that's the case
@@ -585,7 +601,10 @@ export default class AbstractContentItem extends EventEmitter {
              * to the layoutManager
              */
             if (this.isRoot === false && this.parent) {
-                this.parent.emit.apply(this.parent, Array.prototype.slice.call(arguments, 0));
+                this.parent.emit.apply(
+                    this.parent,
+                    Array.prototype.slice.call(arguments, 0)
+                );
             } else {
                 this._scheduleEventPropagationToLayoutManager(name, event);
             }
@@ -606,12 +625,13 @@ export default class AbstractContentItem extends EventEmitter {
         if (this._throttledEvents.indexOf(name) === -1) {
             this.layoutManager.emit(name, event.origin);
         } else {
-            if (this._pendingEventPropagations[ name ] !== true) {
-                this._pendingEventPropagations[ name ] = true;
-                utils.animFrame(this._propagateEventToLayoutManager.bind(this, name, event));
+            if (this._pendingEventPropagations[name] !== true) {
+                this._pendingEventPropagations[name] = true;
+                utils.animFrame(
+                    this._propagateEventToLayoutManager.bind(this, name, event)
+                );
             }
         }
-
     }
 
     /**
@@ -623,7 +643,7 @@ export default class AbstractContentItem extends EventEmitter {
      * @returns {void}
      */
     _propagateEventToLayoutManager(name, event) {
-        this._pendingEventPropagations[ name ] = false;
+        this._pendingEventPropagations[name] = false;
         this.layoutManager.emit(name, event);
     }
 }

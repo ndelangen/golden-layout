@@ -38,16 +38,13 @@ export default class ConfigMinifier {
             'parentId',
             'activeItemIndex',
             'reorderEnabled',
-            'borderGrabWidth',
-
-
-
+            'borderGrabWidth'
 
             //Maximum 36 entries, do not cross this line!
         ];
 
         if (this._keys.length > 36) {
-            throw new Error( 'Too many keys in config minifier map' );
+            throw new Error('Too many keys in config minifier map');
         }
 
         this._values = [
@@ -75,7 +72,7 @@ export default class ConfigMinifier {
      */
     minifyConfig(config) {
         var min = {};
-        this._nextLevel( config, min, '_min' );
+        this._nextLevel(config, min, '_min');
         return min;
     }
 
@@ -89,7 +86,7 @@ export default class ConfigMinifier {
      */
     unminifyConfig(minifiedConfig) {
         var orig = {};
-        this._nextLevel(minifiedConfig, orig, '_max' );
+        this._nextLevel(minifiedConfig, orig, '_max');
         return orig;
     }
 
@@ -105,22 +102,21 @@ export default class ConfigMinifier {
     _nextLevel(from, to, translationFn) {
         var key, minKey;
 
-        for(key in from) {
-
+        for (key in from) {
             /**
              * For in returns array indices as keys, so let's cast them to numbers
              */
-            if (from instanceof Array ) key = parseInt( key, 10 );
+            if (from instanceof Array) key = parseInt(key, 10);
 
             /**
              * In case something has extended Object prototypes
              */
-            if (!from.hasOwnProperty( key ) ) continue;
+            if (!from.hasOwnProperty(key)) continue;
 
             /**
              * Translate the key to a one letter substitute
              */
-            minKey = this[translationFn]( key, this._keys );
+            minKey = this[translationFn](key, this._keys);
 
             /**
              * For Arrays and Objects, create a new Array/Object
@@ -128,14 +124,14 @@ export default class ConfigMinifier {
              */
             if (typeof from[key] === 'object') {
                 to[minKey] = from[key] instanceof Array ? [] : {};
-                this._nextLevel( from[key], to[minKey], translationFn );
+                this._nextLevel(from[key], to[minKey], translationFn);
 
                 /**
                  * For primitive values (Strings, Numbers, Boolean etc.)
                  * minify the value
                  */
             } else {
-                to[minKey] = this[translationFn]( from[key], this._values );
+                to[minKey] = this[translationFn](from[key], this._values);
             }
         }
     }
@@ -169,7 +165,7 @@ export default class ConfigMinifier {
              * value found in dictionary, return its base36 counterpart
              */
         } else {
-            return index.toString( 36 );
+            return index.toString(36);
         }
     }
 
@@ -179,7 +175,7 @@ export default class ConfigMinifier {
          * and return the original value from the dictionary
          */
         if (typeof value === 'string' && value.length === 1) {
-            return dictionary[parseInt( value, 36 )];
+            return dictionary[parseInt(value, 36)];
         }
 
         /**
@@ -187,7 +183,7 @@ export default class ConfigMinifier {
          * to avoid mistaking it for a translation. Remove the prefix
          * and return the original character
          */
-        if (typeof value === 'string' && value.substr( 0, 3 ) === '___') {
+        if (typeof value === 'string' && value.substr(0, 3) === '___') {
             return value[3];
         }
         /**

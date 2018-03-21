@@ -1,57 +1,64 @@
-describe( 'supports drag creation', function() {
+describe('supports drag creation', function() {
     var layout, dragSrc;
 
     beforeAll(function() {
-        return testTools.createLayout({
-            content: [ {
-                type: 'stack',
-                content: [ {
-                    type: 'component',
-                    componentState: { html: '<div id="dragsource"></div>' },
-                    componentName: 'testComponent'
-                } ]
-            } ]
-        }).then(l => layout = l);
+        return testTools
+            .createLayout({
+                content: [
+                    {
+                        type: 'stack',
+                        content: [
+                            {
+                                type: 'component',
+                                componentState: {
+                                    html: '<div id="dragsource"></div>'
+                                },
+                                componentName: 'testComponent'
+                            }
+                        ]
+                    }
+                ]
+            })
+            .then(l => (layout = l));
     }, 10000);
 
-    it( 'creates a layout', function() {
-        expect( layout.isInitialised ).toBe( true );
-    } );
+    it('creates a layout', function() {
+        expect(layout.isInitialised).toBe(true);
+    });
 
-    it( 'creates a drag source', function() {
-        dragSrc = layout.root.contentItems[ 0 ].element.find( '#dragsource' );
-        expect( dragSrc.length ).toBe( 1 );
+    it('creates a drag source', function() {
+        dragSrc = layout.root.contentItems[0].element.find('#dragsource');
+        expect(dragSrc.length).toBe(1);
 
-        layout.createDragSource( dragSrc, {
-                type: 'component',
-                componentState: { html: '<div class="dragged"></div>' },
-                componentName: 'testComponent'
-            }
-        );
-    } );
+        layout.createDragSource(dragSrc, {
+            type: 'component',
+            componentState: { html: '<div class="dragged"></div>' },
+            componentName: 'testComponent'
+        });
+    });
 
-    it( 'creates a new components if dragged', function() {
-        expect( $( '.dragged' ).length ).toBe( 0 );
+    it('creates a new components if dragged', function() {
+        expect($('.dragged').length).toBe(0);
 
-        var mouse = $.Event( 'mousedown' );
+        var mouse = $.Event('mousedown');
         mouse.pageX = dragSrc.position().left;
         mouse.pageY = dragSrc.position().top;
         mouse.button = 0;
-        dragSrc.trigger( mouse );
+        dragSrc.trigger(mouse);
 
-        mouse = $.Event( 'mousemove' );
+        mouse = $.Event('mousemove');
         mouse.pageX = dragSrc.position().left + 50;
         mouse.pageY = dragSrc.position().top + 50;
-        dragSrc.trigger( mouse );
+        dragSrc.trigger(mouse);
 
-        dragSrc.trigger( 'mouseup' );
+        dragSrc.trigger('mouseup');
 
-        expect( $( '.dragged' ).length ).toBe( 1 );
-        var node = testTools.verifyPath( "row.0", layout, expect );
-        expect( node.element.find( ".dragged" ).length ).toBe( 1 );
-    } );
+        expect($('.dragged').length).toBe(1);
+        var node = testTools.verifyPath('row.0', layout, expect);
+        expect(node.element.find('.dragged').length).toBe(1);
+    });
 
-    it( 'destroys the layout', function() {
+    it('destroys the layout', function() {
         layout.destroy();
-    } );
-} );
+    });
+});

@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
  * A specialised GoldenLayout component that binds GoldenLayout container
  * lifecycle events to react components
  *
-*/
+ */
 export default class ReactComponentHandler {
     /**
      *
@@ -32,7 +32,10 @@ export default class ReactComponentHandler {
      * @returns {void}
      */
     _render() {
-        ReactDOM.render(this._getReactComponent(), this._container.getElement()[ 0 ]);
+        ReactDOM.render(
+            this._getReactComponent(),
+            this._container.getElement()[0]
+        );
     }
 
     /**
@@ -48,9 +51,10 @@ export default class ReactComponentHandler {
      */
     _gotReactComponent(component) {
         this._reactComponent = component;
-        this._originalComponentWillUpdate = this._reactComponent.componentWillUpdate || function() {};
+        this._originalComponentWillUpdate =
+            this._reactComponent.componentWillUpdate || function() {};
         this._reactComponent.componentWillUpdate = this._onUpdate.bind(this);
-        if(this._container.getState()) {
+        if (this._container.getState()) {
             this._reactComponent.setState(this._container.getState());
         }
     }
@@ -62,7 +66,7 @@ export default class ReactComponentHandler {
      * @returns {void}
      */
     _destroy() {
-        ReactDOM.unmountComponentAtNode(this._container.getElement()[ 0 ]);
+        ReactDOM.unmountComponentAtNode(this._container.getElement()[0]);
         this._container.off('open', this._render, this);
         this._container.off('destroy', this._destroy, this);
     }
@@ -76,7 +80,11 @@ export default class ReactComponentHandler {
      */
     _onUpdate(nextProps, nextState) {
         this._container.setState(nextState);
-        this._originalComponentWillUpdate.call(this._reactComponent, nextProps, nextState);
+        this._originalComponentWillUpdate.call(
+            this._reactComponent,
+            nextProps,
+            nextState
+        );
     }
 
     /**
@@ -89,15 +97,21 @@ export default class ReactComponentHandler {
         const componentName = this._container._config.component;
         let reactClass;
 
-        if(!componentName) {
-            throw new Error('No react component name. type: react-component needs a field `component`');
+        if (!componentName) {
+            throw new Error(
+                'No react component name. type: react-component needs a field `component`'
+            );
         }
 
         reactClass = this._container.layoutManager.getComponent(componentName);
 
-        if(!reactClass) {
-            throw new Error('React component "' + componentName + '" not found. ' +
-                'Please register all components with GoldenLayout using `registerComponent(name, component)`');
+        if (!reactClass) {
+            throw new Error(
+                'React component "' +
+                    componentName +
+                    '" not found. ' +
+                    'Please register all components with GoldenLayout using `registerComponent(name, component)`'
+            );
         }
 
         return reactClass;
@@ -115,7 +129,10 @@ export default class ReactComponentHandler {
             glContainer: this._container,
             ref: this._gotReactComponent.bind(this)
         };
-        const props = Object.assign(defaultProps, this._container._config.props);
+        const props = Object.assign(
+            defaultProps,
+            this._container._config.props
+        );
         return React.createElement(this._reactClass, props);
     }
 }

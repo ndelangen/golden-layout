@@ -34,17 +34,22 @@ export default class EventEmitter {
      *
      * @returns {void}
      */
-    on( sEvent, fCallback, oContext ) {
-        if(!(typeof fCallback === 'function')) {
-            throw new Error( 'Tried to listen to event ' + sEvent + ' with non-function callback ' + fCallback );
+    on(sEvent, fCallback, oContext) {
+        if (!(typeof fCallback === 'function')) {
+            throw new Error(
+                'Tried to listen to event ' +
+                    sEvent +
+                    ' with non-function callback ' +
+                    fCallback
+            );
         }
 
-        if( !this._mSubscriptions[ sEvent ] ) {
-            this._mSubscriptions[ sEvent ] = [];
+        if (!this._mSubscriptions[sEvent]) {
+            this._mSubscriptions[sEvent] = [];
         }
 
-        this._mSubscriptions[ sEvent ].push( { fn: fCallback, ctx: oContext } );
-    };
+        this._mSubscriptions[sEvent].push({ fn: fCallback, ctx: oContext });
+    }
 
     /**
      * Emit an event and notify listeners
@@ -54,30 +59,30 @@ export default class EventEmitter {
      *
      * @returns {void}
      */
-    emit( sEvent ) {
+    emit(sEvent) {
         var i, ctx, args;
 
-        args = Array.prototype.slice.call( arguments, 1 );
+        args = Array.prototype.slice.call(arguments, 1);
 
-        var subs = this._mSubscriptions[ sEvent ];
+        var subs = this._mSubscriptions[sEvent];
 
-        if( subs ) {
+        if (subs) {
             subs = subs.slice();
-            for( i = 0; i < subs.length; i++ ) {
-                ctx = subs[ i ].ctx || {};
-                subs[ i ].fn.apply( ctx, args );
+            for (i = 0; i < subs.length; i++) {
+                ctx = subs[i].ctx || {};
+                subs[i].fn.apply(ctx, args);
             }
         }
 
-        args.unshift( sEvent );
+        args.unshift(sEvent);
 
-        var allEventSubs = this._mSubscriptions[ EventEmitter.ALL_EVENT ].slice()
+        var allEventSubs = this._mSubscriptions[EventEmitter.ALL_EVENT].slice();
 
-        for( i = 0; i <allEventSubs.length; i++ ) {
-            ctx = allEventSubs[ i ].ctx || {};
-            allEventSubs[ i ].fn.apply( ctx, args );
+        for (i = 0; i < allEventSubs.length; i++) {
+            ctx = allEventSubs[i].ctx || {};
+            allEventSubs[i].fn.apply(ctx, args);
         }
-    };
+    }
 
     /**
      * Removes a listener for an event, or all listeners if no callback and context is provided.
@@ -88,30 +93,32 @@ export default class EventEmitter {
      *
      * @returns {void}
      */
-    unbind( sEvent, fCallback, oContext ) {
-        if( !this._mSubscriptions[ sEvent ] ) {
-            throw new Error( 'No subscribtions to unsubscribe for event ' + sEvent );
+    unbind(sEvent, fCallback, oContext) {
+        if (!this._mSubscriptions[sEvent]) {
+            throw new Error(
+                'No subscribtions to unsubscribe for event ' + sEvent
+            );
         }
 
-        var i, bUnbound = false;
+        var i,
+            bUnbound = false;
 
-        for( i = 0; i < this._mSubscriptions[ sEvent ].length; i++ ) {
-            if
-            (
-                ( !fCallback || this._mSubscriptions[ sEvent ][ i ].fn === fCallback ) &&
-                ( !oContext || oContext === this._mSubscriptions[ sEvent ][ i ].ctx )
+        for (i = 0; i < this._mSubscriptions[sEvent].length; i++) {
+            if (
+                (!fCallback ||
+                    this._mSubscriptions[sEvent][i].fn === fCallback) &&
+                (!oContext || oContext === this._mSubscriptions[sEvent][i].ctx)
             ) {
-                this._mSubscriptions[ sEvent ].splice( i, 1 );
+                this._mSubscriptions[sEvent].splice(i, 1);
                 bUnbound = true;
             }
         }
 
-        if( bUnbound === false ) {
-            throw new Error( 'Nothing to unbind for ' + sEvent );
+        if (bUnbound === false) {
+            throw new Error('Nothing to unbind for ' + sEvent);
         }
-    };
-
-};
+    }
+}
 
 /**
  * The name of the event that's triggered for every other event

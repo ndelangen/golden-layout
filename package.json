@@ -1,63 +1,60 @@
 {
-  "name": "golden-layout",
-  "version": "1.5.9",
-  "author": "deepstreamHub GmbH",
-  "license": "MIT",
-  "description": "A multi-screen javascript Layout manager https://golden-layout.com",
-  "main": "./dist/goldenlayout.js",
-  "module": "./dist/goldenlayout.es.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "build": "rollup -c",
-    "build:watch": "npm run build -- --watch",
-    "test": "karma start --single-run",
-    "test:watch": "karma start"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/deepstreamIO/golden-layout.git"
-  },
-  "keywords": [
-    "layout manager",
-    "javascript",
-    "docker",
-    "layout",
-    "popouts"
-  ],
-  "bugs": {
-    "url": "https://github.com/deepstreamIO/golden-layout/issues"
-  },
-  "homepage": "https://github.com/deepstreamIO/golden-layout",
-  "jspm": {
-    "main": "dist/goldenlayout",
-    "format": "global",
-    "registry": "jspm",
-    "dependencies": {
-      "jquery": "^2.1.0"
+    "name": "golden-layout",
+    "version": "1.5.9",
+    "author": "deepstreamHub GmbH",
+    "license": "MIT",
+    "description":
+        "A multi-screen javascript Layout manager https://golden-layout.com",
+    "main": "./dist/goldenlayout.js",
+    "module": "./dist/goldenlayout.es.js",
+    "directories": {
+        "test": "test"
     },
-    "shim": {
-      "dist/goldenlayout": [
-        "jquery"
-      ]
+    "scripts": {
+        "build": "rollup -c",
+        "build:watch": "npm run build -- --watch",
+        "test": "karma start --single-run",
+        "test:watch": "karma start",
+        "precommit": "pretty-quick --staged"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/deepstreamIO/golden-layout.git"
+    },
+    "keywords": ["layout manager", "javascript", "docker", "layout", "popouts"],
+    "bugs": {
+        "url": "https://github.com/deepstreamIO/golden-layout/issues"
+    },
+    "homepage": "https://github.com/deepstreamIO/golden-layout",
+    "jspm": {
+        "main": "dist/goldenlayout",
+        "format": "global",
+        "registry": "jspm",
+        "dependencies": {
+            "jquery": "^2.1.0"
+        },
+        "shim": {
+            "dist/goldenlayout": ["jquery"]
+        }
+    },
+    "dependencies": {
+        "jquery": "*"
+    },
+    "devDependencies": {
+        "handlebars": "2.0.0-alpha.2",
+        "husky": "^0.14.3",
+        "jasmine-core": "^3.1.0",
+        "karma": "^2.0.0",
+        "karma-chrome-launcher": "^2.2.0",
+        "karma-coverage": "^1.1.1",
+        "karma-jasmine": "^1.1.1",
+        "karma-phantomjs-launcher": "^1.0.4",
+        "prettier": "^1.11.1",
+        "pretty-quick": "^1.4.1",
+        "rollup": "^0.57.1"
+    },
+    "optionalDependencies": {
+        "react": "14 || 15 || 16",
+        "react-dom": "14 || 15 || 16"
     }
-  },
-  "dependencies": {
-    "jquery": "*"
-  },
-  "devDependencies": {
-    "handlebars": "2.0.0-alpha.2",
-    "jasmine-core": "^3.1.0",
-    "karma": "^2.0.0",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-coverage": "^1.1.1",
-    "karma-jasmine": "^1.1.1",
-    "karma-phantomjs-launcher": "^1.0.4",
-    "rollup": "^0.57.1"
-  },
-  "optionalDependencies": {
-    "react": "14 || 15 || 16",
-    "react-dom": "14 || 15 || 16"
-  }
 }

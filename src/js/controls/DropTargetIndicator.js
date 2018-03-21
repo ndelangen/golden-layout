@@ -15,12 +15,14 @@ export default class DropTargetIndicator {
     }
 
     highlightArea(area) {
-        this.element.css({
-            left: area.x1,
-            top: area.y1,
-            width: area.x2 - area.x1,
-            height: area.y2 - area.y1
-        }).show();
+        this.element
+            .css({
+                left: area.x1,
+                top: area.y1,
+                width: area.x2 - area.x1,
+                height: area.y2 - area.y1
+            })
+            .show();
     }
 
     hide() {
@@ -28,4 +30,5 @@ export default class DropTargetIndicator {
     }
 }
 
-DropTargetIndicator._template = '<div class="lm_dropTargetIndicator"><div class="lm_inner"></div></div>';
+DropTargetIndicator._template =
+    '<div class="lm_dropTargetIndicator"><div class="lm_inner"></div></div>';

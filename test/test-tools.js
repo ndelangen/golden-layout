@@ -1,12 +1,12 @@
 testTools = {};
 
-testTools.createLayout = function( config, createdCallback = null) {
-    var myLayout = new window.GoldenLayout( config );
+testTools.createLayout = function(config, createdCallback = null) {
+    var myLayout = new window.GoldenLayout(config);
 
     if (createdCallback !== null) {
         createdCallback(myLayout);
     } else {
-        myLayout.registerComponent( 'testComponent', testTools.TestComponent );
+        myLayout.registerComponent('testComponent', testTools.TestComponent);
     }
 
     const resultPromise = new Promise((res, rej) => {
@@ -20,11 +20,11 @@ testTools.createLayout = function( config, createdCallback = null) {
     return resultPromise;
 };
 
-testTools.TestComponent = function( container, state ){
-    if ( state === undefined ) {
-        container.getElement().html( 'that worked' );
+testTools.TestComponent = function(container, state) {
+    if (state === undefined) {
+        container.getElement().html('that worked');
     } else {
-        container.getElement().html( state.html );
+        container.getElement().html(state.html);
     }
     this.isTestComponentInstance = true;
 };
@@ -42,25 +42,25 @@ testTools.TestComponent = function( container, state ){
  *
  * @returns {AbstractContentItem}
  */
-testTools.verifyPath = function( path, layout, expect ) {
-    expect( layout.root ).toBeDefined();
-    expect( layout.root.contentItems.length ).toBe( 1 );
+testTools.verifyPath = function(path, layout, expect) {
+    expect(layout.root).toBeDefined();
+    expect(layout.root.contentItems.length).toBe(1);
 
-    var pathSegments = path.split( '.' ),
+    var pathSegments = path.split('.'),
         node = layout.root.contentItems[0],
         i;
 
     for (const segment of pathSegments) {
         const segmentNum = parseInt(segment);
 
-        if(isNaN(segment)) {
+        if (isNaN(segment)) {
             expect(node.type).toBe(segment);
         } else {
             node = node.contentItems[segmentNum];
 
             expect(node).toBeDefined();
 
-            if(node === undefined) {
+            if (node === undefined) {
                 return null;
             }
         }

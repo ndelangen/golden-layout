@@ -3,7 +3,7 @@ import EventEmitter from '../utils/EventEmitter';
 import $ from 'jquery';
 
 export default class ItemContainer extends EventEmitter {
-    constructor( config, parent, layoutManager ) {
+    constructor(config, parent, layoutManager) {
         super();
 
         this.width = null;
@@ -14,13 +14,15 @@ export default class ItemContainer extends EventEmitter {
         this.isHidden = false;
 
         this._config = config;
-        this._element = $( [
-            '<div class="lm_item_container">',
-            '<div class="lm_content"></div>',
-            '</div>'
-        ].join( '' ) );
+        this._element = $(
+            [
+                '<div class="lm_item_container">',
+                '<div class="lm_content"></div>',
+                '</div>'
+            ].join('')
+        );
 
-        this._contentElement = this._element.find( '.lm_content' );
+        this._contentElement = this._element.find('.lm_content');
     }
 
     /**
@@ -41,7 +43,7 @@ export default class ItemContainer extends EventEmitter {
      * @returns {void}
      */
     hide() {
-        this.emit( 'hide' );
+        this.emit('hide');
         this.isHidden = true;
         this._element.hide();
     }
@@ -54,12 +56,12 @@ export default class ItemContainer extends EventEmitter {
      * @returns {void}
      */
     show() {
-        this.emit( 'show' );
+        this.emit('show');
         this.isHidden = false;
         this._element.show();
         // call shown only if the container has a valid size
-        if( this.height != 0 || this.width != 0 ) {
-            this.emit( 'shown' );
+        if (this.height != 0 || this.width != 0) {
+            this.emit('shown');
         }
     }
 
@@ -76,7 +78,7 @@ export default class ItemContainer extends EventEmitter {
      *
      * @returns {Boolean} resizeSuccesful
      */
-    setSize( width, height ) {
+    setSize(width, height) {
         var rowOrColumn = this.parent,
             rowOrColumnChild = this,
             totalPixel,
@@ -86,35 +88,37 @@ export default class ItemContainer extends EventEmitter {
             delta,
             i;
 
-        while( !rowOrColumn.isColumn && !rowOrColumn.isRow ) {
+        while (!rowOrColumn.isColumn && !rowOrColumn.isRow) {
             rowOrColumnChild = rowOrColumn;
             rowOrColumn = rowOrColumn.parent;
-
 
             /**
              * No row or column has been found
              */
-            if( rowOrColumn.isRoot ) {
+            if (rowOrColumn.isRoot) {
                 return false;
             }
         }
 
-        direction = rowOrColumn.isColumn ? "height" : "width";
-        newSize = direction === "height" ? height : width;
+        direction = rowOrColumn.isColumn ? 'height' : 'width';
+        newSize = direction === 'height' ? height : width;
 
-        totalPixel = this[ direction ] * ( 1 / ( rowOrColumnChild.config[ direction ] / 100 ) );
-        percentage = ( newSize / totalPixel ) * 100;
-        delta = ( rowOrColumnChild.config[ direction ] - percentage ) / (rowOrColumn.contentItems.length - 1);
+        totalPixel =
+            this[direction] * (1 / (rowOrColumnChild.config[direction] / 100));
+        percentage = newSize / totalPixel * 100;
+        delta =
+            (rowOrColumnChild.config[direction] - percentage) /
+            (rowOrColumn.contentItems.length - 1);
 
-        for( i = 0; i < rowOrColumn.contentItems.length; i++ ) {
-            if( rowOrColumn.contentItems[ i ] === rowOrColumnChild ) {
-                rowOrColumn.contentItems[ i ].config[ direction ] = percentage;
+        for (i = 0; i < rowOrColumn.contentItems.length; i++) {
+            if (rowOrColumn.contentItems[i] === rowOrColumnChild) {
+                rowOrColumn.contentItems[i].config[direction] = percentage;
             } else {
-                rowOrColumn.contentItems[ i ].config[ direction ] += delta;
+                rowOrColumn.contentItems[i].config[direction] += delta;
             }
         }
 
-        rowOrColumn.callDownwards( 'setSize' );
+        rowOrColumn.callDownwards('setSize');
 
         return true;
     }
@@ -127,8 +131,8 @@ export default class ItemContainer extends EventEmitter {
      * @returns {void}
      */
     close() {
-        if( this._config.isClosable ) {
-            this.emit( 'close' );
+        if (this._config.isClosable) {
+            this.emit('close');
             this.parent.close();
         }
     }
@@ -149,8 +153,8 @@ export default class ItemContainer extends EventEmitter {
      *
      * @returns {void}
      */
-    extendState( state ) {
-        this.setState( $.extend( true, this.getState(), state ) );
+    extendState(state) {
+        this.setState($.extend(true, this.getState(), state));
     }
 
     /**
@@ -158,9 +162,9 @@ export default class ItemContainer extends EventEmitter {
      *
      * @param {serialisable} state
      */
-    setState( state ) {
+    setState(state) {
         this._config.componentState = state;
-        this.parent.emitBubblingEvent( 'stateChanged' );
+        this.parent.emitBubblingEvent('stateChanged');
     }
 
     /**
@@ -168,8 +172,8 @@ export default class ItemContainer extends EventEmitter {
      *
      * @param {String} title
      */
-    setTitle( title ) {
-        this.parent.setTitle( title );
+    setTitle(title) {
+        this.parent.setTitle(title);
     }
 
     /**
@@ -182,13 +186,12 @@ export default class ItemContainer extends EventEmitter {
      *
      * @returns {void}
      */
-    _$setSize( width, height ) {
-        if( width !== this.width || height !== this.height ) {
+    _$setSize(width, height) {
+        if (width !== this.width || height !== this.height) {
             this.width = width;
             this.height = height;
-            this._contentElement.outerWidth( width )
-                 .outerHeight( height );
-            this.emit( 'resize' );
+            this._contentElement.outerWidth(width).outerHeight(height);
+            this.emit('resize');
         }
     }
 }

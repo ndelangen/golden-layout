@@ -19,7 +19,7 @@ export default class DragListener extends EventEmitter {
         /**
          * The distance the mouse needs to be moved to qualify as a drag
          */
-        this._nDistance = 10;//TODO - works better with delay only
+        this._nDistance = 10; //TODO - works better with delay only
 
         this._nX = 0;
         this._nY = 0;
@@ -32,7 +32,6 @@ export default class DragListener extends EventEmitter {
         this._fMove = this.onMouseMove.bind(this);
         this._fUp = this.onMouseUp.bind(this);
         this._fDown = this.onMouseDown.bind(this);
-
 
         this._eElement.on('mousedown touchstart', this._fDown);
     }
@@ -48,7 +47,7 @@ export default class DragListener extends EventEmitter {
     onMouseDown(oEvent) {
         oEvent.preventDefault();
 
-        if(oEvent.button == 0 || oEvent.type === "touchstart") {
+        if (oEvent.button == 0 || oEvent.type === 'touchstart') {
             var coordinates = this._getCoordinates(oEvent);
 
             this._nOriginalX = coordinates.x;
@@ -57,12 +56,15 @@ export default class DragListener extends EventEmitter {
             this._oDocument.on('mousemove touchmove', this._fMove);
             this._oDocument.one('mouseup touchend', this._fUp);
 
-            this._timeout = setTimeout(this._startDrag.bind(this), this._nDelay);
+            this._timeout = setTimeout(
+                this._startDrag.bind(this),
+                this._nDelay
+            );
         }
     }
 
     onMouseMove(oEvent) {
-        if(this._timeout != null) {
+        if (this._timeout != null) {
             oEvent.preventDefault();
 
             var coordinates = this._getCoordinates(oEvent);
@@ -70,8 +72,8 @@ export default class DragListener extends EventEmitter {
             this._nX = coordinates.x - this._nOriginalX;
             this._nY = coordinates.y - this._nOriginalY;
 
-            if(this._bDragging === false) {
-                if(
+            if (this._bDragging === false) {
+                if (
                     Math.abs(this._nX) > this._nDistance ||
                     Math.abs(this._nY) > this._nDistance
                 ) {
@@ -80,14 +82,14 @@ export default class DragListener extends EventEmitter {
                 }
             }
 
-            if(this._bDragging) {
+            if (this._bDragging) {
                 this.emit('drag', this._nX, this._nY, oEvent);
             }
         }
     }
 
     onMouseUp(oEvent) {
-        if(this._timeout != null) {
+        if (this._timeout != null) {
             clearTimeout(this._timeout);
             this._eBody.removeClass('lm_dragging');
             this._eElement.removeClass('lm_dragging');
@@ -95,7 +97,7 @@ export default class DragListener extends EventEmitter {
             this._oDocument.unbind('mousemove touchmove', this._fMove);
             this._oDocument.unbind('mouseup touchend', this._fUp);
 
-            if(this._bDragging === true) {
+            if (this._bDragging === true) {
                 this._bDragging = false;
                 this.emit('dragStop', oEvent, this._nOriginalX + this._nX);
             }
@@ -111,7 +113,10 @@ export default class DragListener extends EventEmitter {
     }
 
     _getCoordinates(event) {
-        event = event.originalEvent && event.originalEvent.touches ? event.originalEvent.touches[ 0 ] : event;
+        event =
+            event.originalEvent && event.originalEvent.touches
+                ? event.originalEvent.touches[0]
+                : event;
         return {
             x: event.pageX,
             y: event.pageY

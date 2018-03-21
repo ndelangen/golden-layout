@@ -1,46 +1,50 @@
-describe( 'tabs apply their configuration', function(){
+describe('tabs apply their configuration', function() {
     var layout;
 
     beforeAll(function() {
-        return testTools.createLayout({
-            content: [{
-                type: 'stack',
-                content: [{
-                    type: 'component',
-                    componentName: 'testComponent'
-                },
-                {
-                    type: 'component',
-                    componentName: 'testComponent',
-                    reorderEnabled: false
-                }]
-            }]
-        }).then(l => layout = l);
+        return testTools
+            .createLayout({
+                content: [
+                    {
+                        type: 'stack',
+                        content: [
+                            {
+                                type: 'component',
+                                componentName: 'testComponent'
+                            },
+                            {
+                                type: 'component',
+                                componentName: 'testComponent',
+                                reorderEnabled: false
+                            }
+                        ]
+                    }
+                ]
+            })
+            .then(l => (layout = l));
     }, 10000);
 
-    it( 'creates a layout', function(){
-        expect( layout.isInitialised ).toBe( true );
+    it('creates a layout', function() {
+        expect(layout.isInitialised).toBe(true);
     });
 
-    it( 'attached a drag listener to the first tab', function(){
+    it('attached a drag listener to the first tab', function() {
+        var item1 = layout.root.contentItems[0].contentItems[0],
+            item2 = layout.root.contentItems[0].contentItems[1],
+            header = layout.root.contentItems[0].header;
 
+        expect(header.tabs.length).toBe(2);
 
-        var item1 = layout.root.contentItems[ 0 ].contentItems[ 0 ],
-            item2 = layout.root.contentItems[ 0 ].contentItems[ 1 ],
-            header = layout.root.contentItems[ 0 ].header;
+        expect(item1.type).toBe('component');
+        expect(item1.config.reorderEnabled).toBe(true);
+        expect(header.tabs[0]._dragListener).toBeDefined();
 
-        expect( header.tabs.length ).toBe( 2 );
-
-        expect( item1.type ).toBe( 'component' );
-        expect( item1.config.reorderEnabled ).toBe( true );
-        expect( header.tabs[ 0 ]._dragListener ).toBeDefined();
-
-        expect( item2.type ).toBe( 'component' );
-        expect( item2.config.reorderEnabled ).toBe( false );
-        expect( header.tabs[ 1 ]._dragListener ).not.toBeDefined();
+        expect(item2.type).toBe('component');
+        expect(item2.config.reorderEnabled).toBe(false);
+        expect(header.tabs[1]._dragListener).not.toBeDefined();
     });
 
-    it( 'destroys the layout', function(){
+    it('destroys the layout', function() {
         layout.destroy();
     });
 });

@@ -32,21 +32,25 @@ export default class TransitionIndicator {
 
     _nextAnimationFrame() {
         var toDimensions = this._measure(this._toElement),
-            animationProgress = (utils.now() - this._animationStartTime) / this._totalAnimationDuration,
+            animationProgress =
+                (utils.now() - this._animationStartTime) /
+                this._totalAnimationDuration,
             currentFrameStyles = {},
             cssProperty;
 
-        if(animationProgress >= 1) {
+        if (animationProgress >= 1) {
             this._element.hide();
             return;
         }
 
         toDimensions.opacity = 0;
 
-        for(cssProperty in this._fromDimensions) {
-            currentFrameStyles[cssProperty] = this._fromDimensions[cssProperty] +
-                (toDimensions[cssProperty] - this._fromDimensions[cssProperty]) *
-                animationProgress;
+        for (cssProperty in this._fromDimensions) {
+            currentFrameStyles[cssProperty] =
+                this._fromDimensions[cssProperty] +
+                (toDimensions[cssProperty] -
+                    this._fromDimensions[cssProperty]) *
+                    animationProgress;
         }
 
         this._element.css(currentFrameStyles);

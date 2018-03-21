@@ -17,7 +17,6 @@ import $ from 'jquery';
  * @returns {void}
  */
 export default class GoldenLayout extends utils.EventEmitter {
-
     /*
      * @public
      * @constructor
@@ -30,13 +29,15 @@ export default class GoldenLayout extends utils.EventEmitter {
         this.isInitialised = false;
         this._isFullPage = false;
         this._resizeTimeoutId = null;
-        this._components = { 'lm-react-component': utils.ReactComponentHandler };
+        this._components = {
+            'lm-react-component': utils.ReactComponentHandler
+        };
         this._itemAreas = [];
         this._resizeFunction = this._onResize.bind(this);
         this._unloadFunction = this._onUnload.bind(this);
         this._maximisedItem = null;
         // TODO replace JQuery
-        this._maximisePlaceholder = $( '<div class="lm_maximise_place"></div>' );
+        this._maximisePlaceholder = $('<div class="lm_maximise_place"></div>');
         this._creationTimeoutPassed = false;
         this._subWindowsCreated = false;
         this._dragSources = [];
@@ -50,23 +51,25 @@ export default class GoldenLayout extends utils.EventEmitter {
         this.selectedItem = null;
         this.isSubWindow = false;
         this.eventHub = new utils.EventHub(this);
-        this.config = this._createConfig( config );
+        this.config = this._createConfig(config);
         this.container = container;
         this.dropTargetIndicator = null;
         this.transitionIndicator = null;
-        this.tabDropPlaceholder = $( '<div class="lm_drop_tab_placeholder"></div>' );
+        this.tabDropPlaceholder = $(
+            '<div class="lm_drop_tab_placeholder"></div>'
+        );
 
-        if( this.isSubWindow === true ) {
+        if (this.isSubWindow === true) {
             document.querySelector('body').style.visibility = 'hidden';
         }
 
         this._typeToItem = {
-            'column': items.RowOrColumn.bind(this, true),
-            'row': items.RowOrColumn.bind(this, false),
-            'stack': items.Stack,
-            'component': items.Component
+            column: items.RowOrColumn.bind(this, true),
+            row: items.RowOrColumn.bind(this, false),
+            stack: items.Stack,
+            component: items.Component
         };
-    };
+    }
 
     /**
      * Takes a GoldenLayout configuration object and
@@ -79,8 +82,8 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {Object} minified config
      */
-    static minifyConfig( config ) {
-        return new utils.ConfigMinifier().minifyConfig( config );
+    static minifyConfig(config) {
+        return new utils.ConfigMinifier().minifyConfig(config);
     }
 
     /**
@@ -93,10 +96,9 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {Object} the original configuration
      */
-    static unminifyConfig( config ) {
-        return new utils.ConfigMinifier().unminifyConfig( config );
+    static unminifyConfig(config) {
+        return new utils.ConfigMinifier().unminifyConfig(config);
     }
-
 
     /**
      * Register a component with the layout manager. If a configuration node
@@ -115,16 +117,16 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    registerComponent( name, constructor ) {
-        if( typeof constructor !== 'function' ) {
-            throw new Error( 'Please register a constructor function' );
+    registerComponent(name, constructor) {
+        if (typeof constructor !== 'function') {
+            throw new Error('Please register a constructor function');
         }
 
-        if( this._components[ name ] !== undefined ) {
-            throw new Error( 'Component ' + name + ' is already registered' );
+        if (this._components[name] !== undefined) {
+            throw new Error('Component ' + name + ' is already registered');
         }
 
-        this._components[ name ] = constructor;
+        this._components[name] = constructor;
     }
 
     /**
@@ -133,53 +135,53 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @public
      * @returns {Object} GoldenLayout configuration
      */
-    toConfig( root ) {
+    toConfig(root) {
         var config, next, i;
 
-        if( this.isInitialised === false ) {
-            throw new Error( 'Can\'t create config, layout not yet initialised' );
+        if (this.isInitialised === false) {
+            throw new Error("Can't create config, layout not yet initialised");
         }
 
-        if( root && !( root instanceof items.AbstractContentItem ) ) {
-            throw new Error( 'Root must be a ContentItem' );
+        if (root && !(root instanceof items.AbstractContentItem)) {
+            throw new Error('Root must be a ContentItem');
         }
 
         /*
          * settings & labels
          */
         config = {
-            settings: utils.copy( {}, this.config.settings ),
-            dimensions: utils.copy( {}, this.config.dimensions ),
-            labels: utils.copy( {}, this.config.labels )
+            settings: utils.copy({}, this.config.settings),
+            dimensions: utils.copy({}, this.config.dimensions),
+            labels: utils.copy({}, this.config.labels)
         };
 
         /*
          * Content
          */
         config.content = [];
-        next = function( configNode, item ) {
+        next = function(configNode, item) {
             var key, i;
 
-            for( key in item.config ) {
-                if( key !== 'content' ) {
-                    configNode[ key ] = item.config[ key ];
+            for (key in item.config) {
+                if (key !== 'content') {
+                    configNode[key] = item.config[key];
                 }
             }
 
-            if( item.contentItems.length ) {
+            if (item.contentItems.length) {
                 configNode.content = [];
 
-                for( i = 0; i < item.contentItems.length; i++ ) {
-                    configNode.content[ i ] = {};
-                    next( configNode.content[ i ], item.contentItems[ i ] );
+                for (i = 0; i < item.contentItems.length; i++) {
+                    configNode.content[i] = {};
+                    next(configNode.content[i], item.contentItems[i]);
                 }
             }
         };
 
-        if( root ) {
-            next( config, { contentItems: [ root ] } );
+        if (root) {
+            next(config, { contentItems: [root] });
         } else {
-            next( config, this.root );
+            next(config, this.root);
         }
 
         /*
@@ -187,8 +189,8 @@ export default class GoldenLayout extends utils.EventEmitter {
          */
         this._$reconcilePopoutWindows();
         config.openPopouts = [];
-        for( i = 0; i < this.openPopouts.length; i++ ) {
-            config.openPopouts.push( this.openPopouts[ i ].toConfig() );
+        for (i = 0; i < this.openPopouts.length; i++) {
+            config.openPopouts.push(this.openPopouts[i].toConfig());
         }
 
         /*
@@ -206,12 +208,12 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {Function}
      */
-    getComponent( name ) {
-        if( this._components[ name ] === undefined ) {
-            throw new ConfigurationError( 'Unknown component "' + name + '"' );
+    getComponent(name) {
+        if (this._components[name] === undefined) {
+            throw new ConfigurationError('Unknown component "' + name + '"');
         }
 
-        return this._components[ name ];
+        return this._components[name];
     }
 
     /**
@@ -227,23 +229,21 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     init() {
-
         /**
          * Create the popout windows straight away. If popouts are blocked
          * an error is thrown on the same 'thread' rather than a timeout and can
          * be caught. This also prevents any further initilisation from taking place.
          */
-        if( this._subWindowsCreated === false ) {
+        if (this._subWindowsCreated === false) {
             this._createSubWindows();
             this._subWindowsCreated = true;
         }
 
-
         /**
          * If the document isn't ready yet, wait for it.
          */
-        if( document.readyState === 'loading' || document.body === null ) {
-            $( document ).ready(this.init.bind(this) );
+        if (document.readyState === 'loading' || document.body === null) {
+            $(document).ready(this.init.bind(this));
             return;
         }
 
@@ -252,25 +252,28 @@ export default class GoldenLayout extends utils.EventEmitter {
          * page's js calls to be executed, then replace the bodies content
          * with GoldenLayout
          */
-        if( this.isSubWindow === true && this._creationTimeoutPassed === false ) {
-            setTimeout(this.init.bind(this), 7 );
+        if (
+            this.isSubWindow === true &&
+            this._creationTimeoutPassed === false
+        ) {
+            setTimeout(this.init.bind(this), 7);
             this._creationTimeoutPassed = true;
             return;
         }
 
-        if( this.isSubWindow === true ) {
+        if (this.isSubWindow === true) {
             this._adjustToWindowMode();
         }
 
         this._setContainer();
-        this.dropTargetIndicator = new DropTargetIndicator( this.container );
+        this.dropTargetIndicator = new DropTargetIndicator(this.container);
         this.transitionIndicator = new TransitionIndicator();
         this.updateSize();
-        this._create( this.config );
+        this._create(this.config);
         this._bindEvents();
         this.isInitialised = true;
         this._adjustColumnsResponsive();
-        this.emit( 'initialised' );
+        this.emit('initialised');
     }
 
     /**
@@ -282,8 +285,8 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    updateSize( width, height ) {
-        if( arguments.length === 2 ) {
+    updateSize(width, height) {
+        if (arguments.length === 2) {
             this.width = width;
             this.height = height;
         } else {
@@ -291,13 +294,13 @@ export default class GoldenLayout extends utils.EventEmitter {
             this.height = this.container.height();
         }
 
-        if( this.isInitialised === true ) {
-            this.root.callDownwards( 'setSize', [ this.width, this.height ] );
+        if (this.isInitialised === true) {
+            this.root.callDownwards('setSize', [this.width, this.height]);
 
-            if( this._maximisedItem ) {
-                this._maximisedItem.element.width( this.container.width() );
-                this._maximisedItem.element.height( this.container.height() );
-                this._maximisedItem.callDownwards( 'setSize' );
+            if (this._maximisedItem) {
+                this._maximisedItem.element.width(this.container.width());
+                this._maximisedItem.element.height(this.container.height());
+                this._maximisedItem.callDownwards('setSize');
             }
 
             this._adjustColumnsResponsive();
@@ -312,25 +315,25 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     destroy() {
-        if( this.isInitialised === false ) {
+        if (this.isInitialised === false) {
             return;
         }
         this._onUnload();
-        $( window ).off( 'resize', this._resizeFunction );
-        $( window ).off( 'unload beforeunload', this._unloadFunction );
-        this.root.callDownwards( '_$destroy', [], true );
+        $(window).off('resize', this._resizeFunction);
+        $(window).off('unload beforeunload', this._unloadFunction);
+        this.root.callDownwards('_$destroy', [], true);
         this.root.contentItems = [];
         this.tabDropPlaceholder.remove();
         this.dropTargetIndicator.destroy();
         this.transitionIndicator.destroy();
         this.eventHub.destroy();
 
-        this._dragSources.forEach( function( dragSource ) {
+        this._dragSources.forEach(function(dragSource) {
             dragSource._dragListener.destroy();
             dragSource._element = null;
             dragSource._itemConfig = null;
             dragSource._dragListener = null;
-        } );
+        });
         this._dragSources = [];
     }
 
@@ -344,51 +347,51 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {items.ContentItem}
      */
-    createContentItem( config, parent ) {
+    createContentItem(config, parent) {
         var typeErrorMsg, contentItem;
 
-        if( typeof config.type !== 'string' ) {
-            throw new ConfigurationError( 'Missing parameter \'type\'', config );
+        if (typeof config.type !== 'string') {
+            throw new ConfigurationError("Missing parameter 'type'", config);
         }
 
-        if( config.type === 'react-component' ) {
+        if (config.type === 'react-component') {
             config.type = 'component';
             config.componentName = 'lm-react-component';
         }
 
-        if( !this._typeToItem[ config.type ] ) {
-            typeErrorMsg = 'Unknown type \'' + config.type + '\'. ' +
-                'Valid types are ' + Object.keys( this._typeToItem ).join( ',' );
+        if (!this._typeToItem[config.type]) {
+            typeErrorMsg =
+                "Unknown type '" +
+                config.type +
+                "'. " +
+                'Valid types are ' +
+                Object.keys(this._typeToItem).join(',');
 
-            throw new ConfigurationError( typeErrorMsg );
+            throw new ConfigurationError(typeErrorMsg);
         }
-
 
         /**
          * We add an additional stack around every component that's not within a stack anyways.
          */
-        if(
+        if (
             // If this is a component
-        config.type === 'component' &&
-
-        // and it's not already within a stack
-        !( parent instanceof items.Stack ) &&
-
-        // and we have a parent
-        !!parent &&
-
-        // and it's not the topmost item in a new window
-        !( this.isSubWindow === true && parent instanceof items.Root )
+            config.type === 'component' &&
+            // and it's not already within a stack
+            !(parent instanceof items.Stack) &&
+            // and we have a parent
+            !!parent &&
+            // and it's not the topmost item in a new window
+            !(this.isSubWindow === true && parent instanceof items.Root)
         ) {
             config = {
                 type: 'stack',
                 width: config.width,
                 height: config.height,
-                content: [ config ]
+                content: [config]
             };
         }
 
-        contentItem = new this._typeToItem[ config.type ]( this, config, parent );
+        contentItem = new this._typeToItem[config.type](this, config, parent);
         return contentItem;
     }
 
@@ -403,7 +406,7 @@ export default class GoldenLayout extends utils.EventEmitter {
 
      * @returns {BrowserPopout}
      */
-    createPopout( configOrContentItem, dimensions, parentId, indexInParent ) {
+    createPopout(configOrContentItem, dimensions, parentId, indexInParent) {
         var config = configOrContentItem,
             isItem = configOrContentItem instanceof items.AbstractContentItem,
             self = this,
@@ -416,8 +419,8 @@ export default class GoldenLayout extends utils.EventEmitter {
 
         parentId = parentId || null;
 
-        if( isItem ) {
-            config = this.toConfig( configOrContentItem ).content;
+        if (isItem) {
+            config = this.toConfig(configOrContentItem).content;
             parentId = utils.getUniqueId();
 
             /**
@@ -430,23 +433,22 @@ export default class GoldenLayout extends utils.EventEmitter {
              */
             parent = configOrContentItem.parent;
             child = configOrContentItem;
-            while( parent.contentItems.length === 1 && !parent.isRoot ) {
+            while (parent.contentItems.length === 1 && !parent.isRoot) {
                 parent = parent.parent;
                 child = child.parent;
             }
 
-            parent.addId( parentId );
-            if( isNaN( indexInParent ) ) {
+            parent.addId(parentId);
+            if (isNaN(indexInParent)) {
                 indexInParent = parent.contentItems.indexOf(child);
             }
         } else {
-            if( !( config instanceof Array ) ) {
-                config = [ config ];
+            if (!(config instanceof Array)) {
+                config = [config];
             }
         }
 
-
-        if( !dimensions && isItem ) {
+        if (!dimensions && isItem) {
             windowLeft = window.screenX || window.screenLeft;
             windowTop = window.screenY || window.screenTop;
             offset = configOrContentItem.element.offset();
@@ -459,7 +461,7 @@ export default class GoldenLayout extends utils.EventEmitter {
             };
         }
 
-        if( !dimensions && !isItem ) {
+        if (!dimensions && !isItem) {
             dimensions = {
                 left: window.screenX || window.screenLeft + 20,
                 top: window.screenY || window.screenTop + 20,
@@ -468,21 +470,27 @@ export default class GoldenLayout extends utils.EventEmitter {
             };
         }
 
-        if( isItem ) {
+        if (isItem) {
             configOrContentItem.remove();
         }
 
-        browserPopout = new BrowserPopout( config, dimensions, parentId, indexInParent, this );
+        browserPopout = new BrowserPopout(
+            config,
+            dimensions,
+            parentId,
+            indexInParent,
+            this
+        );
 
-        browserPopout.on( 'initialised', function() {
-            self.emit( 'windowOpened', browserPopout );
-        } );
+        browserPopout.on('initialised', function() {
+            self.emit('windowOpened', browserPopout);
+        });
 
-        browserPopout.on( 'closed', function() {
+        browserPopout.on('closed', function() {
             self._$reconcilePopoutWindows();
-        } );
+        });
 
-        this.openPopouts.push( browserPopout );
+        this.openPopouts.push(browserPopout);
 
         return browserPopout;
     }
@@ -497,10 +505,10 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    createDragSource( element, itemConfig ) {
+    createDragSource(element, itemConfig) {
         this.config.settings.constrainDragToContainer = false;
-        var dragSource = new DragSource( $( element ), itemConfig, this );
-        this._dragSources.push( dragSource );
+        var dragSource = new DragSource($(element), itemConfig, this);
+        this._dragSources.push(dragSource);
 
         return dragSource;
     }
@@ -516,57 +524,58 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    selectItem( item, _$silent ) {
-
-        if( this.config.settings.selectionEnabled !== true ) {
-            throw new Error( 'Please set selectionEnabled to true to use this feature' );
+    selectItem(item, _$silent) {
+        if (this.config.settings.selectionEnabled !== true) {
+            throw new Error(
+                'Please set selectionEnabled to true to use this feature'
+            );
         }
 
-        if( item === this.selectedItem ) {
+        if (item === this.selectedItem) {
             return;
         }
 
-        if( this.selectedItem !== null ) {
+        if (this.selectedItem !== null) {
             this.selectedItem.deselect();
         }
 
-        if( item && _$silent !== true ) {
+        if (item && _$silent !== true) {
             item.select();
         }
 
         this.selectedItem = item;
 
-        this.emit( 'selectionChanged', item );
+        this.emit('selectionChanged', item);
     }
 
     /*************************
      * PACKAGE PRIVATE
      *************************/
-    _$maximiseItem( contentItem ) {
-        if( this._maximisedItem !== null ) {
-            this._$minimiseItem( this._maximisedItem );
+    _$maximiseItem(contentItem) {
+        if (this._maximisedItem !== null) {
+            this._$minimiseItem(this._maximisedItem);
         }
         this._maximisedItem = contentItem;
-        this._maximisedItem.addId( '__glMaximised' );
-        contentItem.element.addClass( 'lm_maximised' );
-        contentItem.element.after( this._maximisePlaceholder );
-        this.root.element.prepend( contentItem.element );
-        contentItem.element.width( this.container.width() );
-        contentItem.element.height( this.container.height() );
-        contentItem.callDownwards( 'setSize' );
-        this._maximisedItem.emit( 'maximised' );
-        this.emit( 'stateChanged' );
+        this._maximisedItem.addId('__glMaximised');
+        contentItem.element.addClass('lm_maximised');
+        contentItem.element.after(this._maximisePlaceholder);
+        this.root.element.prepend(contentItem.element);
+        contentItem.element.width(this.container.width());
+        contentItem.element.height(this.container.height());
+        contentItem.callDownwards('setSize');
+        this._maximisedItem.emit('maximised');
+        this.emit('stateChanged');
     }
 
-    _$minimiseItem( contentItem ) {
-        contentItem.element.removeClass( 'lm_maximised' );
-        contentItem.removeId( '__glMaximised' );
-        this._maximisePlaceholder.after( contentItem.element );
+    _$minimiseItem(contentItem) {
+        contentItem.element.removeClass('lm_maximised');
+        contentItem.removeId('__glMaximised');
+        this._maximisePlaceholder.after(contentItem.element);
         this._maximisePlaceholder.remove();
-        contentItem.parent.callDownwards( 'setSize' );
+        contentItem.parent.callDownwards('setSize');
         this._maximisedItem = null;
-        contentItem.emit( 'minimised' );
-        this.emit( 'stateChanged' );
+        contentItem.emit('minimised');
+        this.emit('stateChanged');
     }
 
     /**
@@ -584,18 +593,21 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _$closeWindow() {
-        window.setTimeout( function() {
+        window.setTimeout(function() {
             window.close();
-        }, 1 );
+        }, 1);
     }
 
-    _$getArea( x, y ) {
-        var i, area, smallestSurface = Infinity, mathingArea = null;
+    _$getArea(x, y) {
+        var i,
+            area,
+            smallestSurface = Infinity,
+            mathingArea = null;
 
-        for( i = 0; i < this._itemAreas.length; i++ ) {
-            area = this._itemAreas[ i ];
+        for (i = 0; i < this._itemAreas.length; i++) {
+            area = this._itemAreas[i];
 
-            if(
+            if (
                 x > area.x1 &&
                 x < area.x2 &&
                 y > area.y1 &&
@@ -613,20 +625,20 @@ export default class GoldenLayout extends utils.EventEmitter {
     _$createRootItemAreas() {
         var areaSize = 50;
         var sides = { y2: 0, x2: 0, y1: 'y2', x1: 'x2' };
-        for( var side in sides ) {
+        for (var side in sides) {
             var area = this.root._$getArea();
             area.side = side;
-            if( sides [ side ] )
-                area[ side ] = area[ sides [ side ] ] - areaSize;
-            else
-                area[ side ] = areaSize;
-            area.surface = ( area.x2 - area.x1 ) * ( area.y2 - area.y1 );
-            this._itemAreas.push( area );
+            if (sides[side]) area[side] = area[sides[side]] - areaSize;
+            else area[side] = areaSize;
+            area.surface = (area.x2 - area.x1) * (area.y2 - area.y1);
+            this._itemAreas.push(area);
         }
     }
 
     _$calculateItemAreas() {
-        var i, area, allContentItems = this._getAllContentItems();
+        var i,
+            area,
+            allContentItems = this._getAllContentItems();
         this._itemAreas = [];
 
         /**
@@ -636,31 +648,34 @@ export default class GoldenLayout extends utils.EventEmitter {
          * Don't include root into the possible drop areas though otherwise since it
          * will used for every gap in the layout, e.g. splitters
          */
-        if( allContentItems.length === 1 ) {
-            this._itemAreas.push( this.root._$getArea() );
+        if (allContentItems.length === 1) {
+            this._itemAreas.push(this.root._$getArea());
             return;
         }
         this._$createRootItemAreas();
 
-        for( i = 0; i < allContentItems.length; i++ ) {
-
-            if( !( allContentItems[ i ].isStack ) ) {
+        for (i = 0; i < allContentItems.length; i++) {
+            if (!allContentItems[i].isStack) {
                 continue;
             }
 
-            area = allContentItems[ i ]._$getArea();
+            area = allContentItems[i]._$getArea();
 
-            if( area === null ) {
+            if (area === null) {
                 continue;
-            } else if( area instanceof Array ) {
-                this._itemAreas = this._itemAreas.concat( area );
+            } else if (area instanceof Array) {
+                this._itemAreas = this._itemAreas.concat(area);
             } else {
-                this._itemAreas.push( area );
+                this._itemAreas.push(area);
                 var header = {};
-                utils.copy( header, area );
-                utils.copy( header, area.contentItem._contentAreaDimensions.header.highlightArea );
-                header.surface = ( header.x2 - header.x1 ) * ( header.y2 - header.y1 );
-                this._itemAreas.push( header );
+                utils.copy(header, area);
+                utils.copy(
+                    header,
+                    area.contentItem._contentAreaDimensions.header.highlightArea
+                );
+                header.surface =
+                    (header.x2 - header.x1) * (header.y2 - header.y1);
+                this._itemAreas.push(header);
             }
         }
     }
@@ -677,25 +692,28 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {items.AbtractContentItem}
      */
-    _$normalizeContentItem( contentItemOrConfig, parent ) {
-        if( !contentItemOrConfig ) {
-            throw new Error( 'No content item defined' );
+    _$normalizeContentItem(contentItemOrConfig, parent) {
+        if (!contentItemOrConfig) {
+            throw new Error('No content item defined');
         }
 
-        if( typeof contentItemOrConfig === 'function') {
+        if (typeof contentItemOrConfig === 'function') {
             contentItemOrConfig = contentItemOrConfig();
         }
 
-        if( contentItemOrConfig instanceof items.AbstractContentItem ) {
+        if (contentItemOrConfig instanceof items.AbstractContentItem) {
             return contentItemOrConfig;
         }
 
-        if( $.isPlainObject( contentItemOrConfig ) && contentItemOrConfig.type ) {
-            var newContentItem = this.createContentItem( contentItemOrConfig, parent );
-            newContentItem.callDownwards( '_$init' );
+        if ($.isPlainObject(contentItemOrConfig) && contentItemOrConfig.type) {
+            var newContentItem = this.createContentItem(
+                contentItemOrConfig,
+                parent
+            );
+            newContentItem.callDownwards('_$init');
             return newContentItem;
         } else {
-            throw new Error( 'Invalid contentItem' );
+            throw new Error('Invalid contentItem');
         }
     }
 
@@ -709,21 +727,21 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _$reconcilePopoutWindows() {
-        var openPopouts = [], i;
+        var openPopouts = [],
+            i;
 
-        for( i = 0; i < this.openPopouts.length; i++ ) {
-            if( this.openPopouts[ i ].getWindow().closed === false ) {
-                openPopouts.push( this.openPopouts[ i ] );
+        for (i = 0; i < this.openPopouts.length; i++) {
+            if (this.openPopouts[i].getWindow().closed === false) {
+                openPopouts.push(this.openPopouts[i]);
             } else {
-                this.emit( 'windowClosed', this.openPopouts[ i ] );
+                this.emit('windowClosed', this.openPopouts[i]);
             }
         }
 
-        if( this.openPopouts.length !== openPopouts.length ) {
-            this.emit( 'stateChanged' );
+        if (this.openPopouts.length !== openPopouts.length) {
+            this.emit('stateChanged');
             this.openPopouts = openPopouts;
         }
-
     }
 
     /***************************
@@ -740,17 +758,17 @@ export default class GoldenLayout extends utils.EventEmitter {
     _getAllContentItems() {
         var allContentItems = [];
 
-        var addChildren = function( contentItem ) {
-            allContentItems.push( contentItem );
+        var addChildren = function(contentItem) {
+            allContentItems.push(contentItem);
 
-            if( contentItem.contentItems instanceof Array ) {
-                for( var i = 0; i < contentItem.contentItems.length; i++ ) {
-                    addChildren( contentItem.contentItems[ i ] );
+            if (contentItem.contentItems instanceof Array) {
+                for (var i = 0; i < contentItem.contentItems.length; i++) {
+                    addChildren(contentItem.contentItems[i]);
                 }
             }
         };
 
-        addChildren( this.root );
+        addChildren(this.root);
 
         return allContentItems;
     }
@@ -763,10 +781,10 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _bindEvents() {
-        if( this._isFullPage ) {
-            $( window ).resize( this._resizeFunction );
+        if (this._isFullPage) {
+            $(window).resize(this._resizeFunction);
         }
-        $( window ).on( 'unload beforeunload', this._unloadFunction );
+        $(window).on('unload beforeunload', this._unloadFunction);
     }
 
     /**
@@ -777,8 +795,8 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _onResize() {
-        clearTimeout( this._resizeTimeoutId );
-        this._resizeTimeoutId = setTimeout(this.updateSize.bind(this), 100 );
+        clearTimeout(this._resizeTimeoutId);
+        this._resizeTimeoutId = setTimeout(this.updateSize.bind(this), 100);
     }
 
     /**
@@ -790,34 +808,33 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @static
      * @returns {Object} config
      */
-    _createConfig( config ) {
-        var windowConfigKey = utils.getQueryStringParam( 'gl-window' );
+    _createConfig(config) {
+        var windowConfigKey = utils.getQueryStringParam('gl-window');
 
-        if( windowConfigKey ) {
+        if (windowConfigKey) {
             this.isSubWindow = true;
-            config = localStorage.getItem( windowConfigKey );
-            config = JSON.parse( config );
-            config = new utils.ConfigMinifier().unminifyConfig( config );
-            localStorage.removeItem( windowConfigKey );
+            config = localStorage.getItem(windowConfigKey);
+            config = JSON.parse(config);
+            config = new utils.ConfigMinifier().unminifyConfig(config);
+            localStorage.removeItem(windowConfigKey);
         }
 
         config = Object.assign({}, defaultConfig, config);
 
-        var nextNode = function( node ) {
-            for( var key in node ) {
-                if( key !== 'props' && typeof node[ key ] === 'object' ) {
-                    nextNode( node[ key ] );
-                }
-                else if( key === 'type' && node[ key ] === 'react-component' ) {
+        var nextNode = function(node) {
+            for (var key in node) {
+                if (key !== 'props' && typeof node[key] === 'object') {
+                    nextNode(node[key]);
+                } else if (key === 'type' && node[key] === 'react-component') {
                     node.type = 'component';
                     node.componentName = 'lm-react-component';
                 }
             }
-        }
+        };
 
-        nextNode( config );
+        nextNode(config);
 
-        if( config.settings.hasHeaders === false ) {
+        if (config.settings.hasHeaders === false) {
             config.dimensions.headerHeight = 0;
         }
 
@@ -833,23 +850,27 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _adjustToWindowMode() {
-        var popInButton = $( '<div class="lm_popin" title="' + this.config.labels.popin + '">' +
-            '<div class="lm_icon"></div>' +
-            '<div class="lm_bg"></div>' +
-            '</div>' );
+        var popInButton = $(
+            '<div class="lm_popin" title="' +
+                this.config.labels.popin +
+                '">' +
+                '<div class="lm_icon"></div>' +
+                '<div class="lm_bg"></div>' +
+                '</div>'
+        );
 
         popInButton.click(() => {
-            this.emit( 'popIn' );
+            this.emit('popIn');
         });
 
-        document.title = utils.stripTags( this.config.content[ 0 ].title );
+        document.title = utils.stripTags(this.config.content[0].title);
 
-        $( 'head' ).append( $( 'body link, body style, template, .gl_keep' ) );
+        $('head').append($('body link, body style, template, .gl_keep'));
 
-        this.container = $( 'body' )
-            .html( '' )
-            .css( 'visibility', 'visible' )
-            .append( popInButton );
+        this.container = $('body')
+            .html('')
+            .css('visibility', 'visible')
+            .append(popInButton);
 
         /*
          * This seems a bit pointless, but actually causes a reflow/re-evaluation getting around
@@ -874,8 +895,8 @@ export default class GoldenLayout extends utils.EventEmitter {
     _createSubWindows() {
         var i, popout;
 
-        for( i = 0; i < this.config.openPopouts.length; i++ ) {
-            popout = this.config.openPopouts[ i ];
+        for (i = 0; i < this.config.openPopouts.length; i++) {
+            popout = this.config.openPopouts[i];
 
             this.createPopout(
                 popout.content,
@@ -894,25 +915,27 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _setContainer() {
-        var container = $( this.container || 'body' );
+        var container = $(this.container || 'body');
 
-        if( container.length === 0 ) {
-            throw new Error( 'GoldenLayout container not found' );
+        if (container.length === 0) {
+            throw new Error('GoldenLayout container not found');
         }
 
-        if( container.length > 1 ) {
-            throw new Error( 'GoldenLayout more than one container element specified' );
+        if (container.length > 1) {
+            throw new Error(
+                'GoldenLayout more than one container element specified'
+            );
         }
 
-        if( container[ 0 ] === document.body ) {
+        if (container[0] === document.body) {
             this._isFullPage = true;
 
-            $( 'html, body' ).css( {
+            $('html, body').css({
                 height: '100%',
                 margin: 0,
                 padding: 0,
                 overflow: 'hidden'
-            } );
+            });
         }
 
         this.container = container;
@@ -925,29 +948,34 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    _create( config ) {
+    _create(config) {
         var errorMsg;
 
-        if( !( config.content instanceof Array ) ) {
-            if( config.content === undefined ) {
-                errorMsg = 'Missing setting \'content\' on top level of configuration';
+        if (!(config.content instanceof Array)) {
+            if (config.content === undefined) {
+                errorMsg =
+                    "Missing setting 'content' on top level of configuration";
             } else {
-                errorMsg = 'Configuration parameter \'content\' must be an array';
+                errorMsg = "Configuration parameter 'content' must be an array";
             }
 
-            throw new ConfigurationError( errorMsg, config );
+            throw new ConfigurationError(errorMsg, config);
         }
 
-        if( config.content.length > 1 ) {
-            errorMsg = 'Top level content can\'t contain more then one element.';
-            throw new ConfigurationError( errorMsg, config );
+        if (config.content.length > 1) {
+            errorMsg = "Top level content can't contain more then one element.";
+            throw new ConfigurationError(errorMsg, config);
         }
 
-        this.root = new items.Root( this, { content: config.content }, this.container );
-        this.root.callDownwards( '_$init' );
+        this.root = new items.Root(
+            this,
+            { content: config.content },
+            this.container
+        );
+        this.root.callDownwards('_$init');
 
-        if( config.maximisedItemId === '__glMaximised' ) {
-            this.root.getItemsById( config.maximisedItemId )[ 0 ].toggleMaximise();
+        if (config.maximisedItemId === '__glMaximised') {
+            this.root.getItemsById(config.maximisedItemId)[0].toggleMaximise();
         }
     }
 
@@ -958,9 +986,9 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _onUnload() {
-        if( this.config.settings.closePopoutsOnUnload === true ) {
-            for( var i = 0; i < this.openPopouts.length; i++ ) {
-                this.openPopouts[ i ].close();
+        if (this.config.settings.closePopoutsOnUnload === true) {
+            for (var i = 0; i < this.openPopouts.length; i++) {
+                this.openPopouts[i].close();
             }
         }
     }
@@ -971,9 +999,15 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {void}
      */
     _adjustColumnsResponsive() {
-
         // If there is no min width set, or not content items, do nothing.
-        if( !this._useResponsiveLayout() || this._updatingColumnsResponsive || !this.config.dimensions || !this.config.dimensions.minItemWidth || this.root.contentItems.length === 0 || !this.root.contentItems[ 0 ].isRow ) {
+        if (
+            !this._useResponsiveLayout() ||
+            this._updatingColumnsResponsive ||
+            !this.config.dimensions ||
+            !this.config.dimensions.minItemWidth ||
+            this.root.contentItems.length === 0 ||
+            !this.root.contentItems[0].isRow
+        ) {
             this._firstLoad = false;
             return;
         }
@@ -981,15 +1015,15 @@ export default class GoldenLayout extends utils.EventEmitter {
         this._firstLoad = false;
 
         // If there is only one column, do nothing.
-        var columnCount = this.root.contentItems[ 0 ].contentItems.length;
-        if( columnCount <= 1 ) {
+        var columnCount = this.root.contentItems[0].contentItems.length;
+        if (columnCount <= 1) {
             return;
         }
 
         // If they all still fit, do nothing.
         var minItemWidth = this.config.dimensions.minItemWidth;
         var totalMinWidth = columnCount * minItemWidth;
-        if( totalMinWidth <= this.width ) {
+        if (totalMinWidth <= this.width) {
             return;
         }
 
@@ -997,15 +1031,21 @@ export default class GoldenLayout extends utils.EventEmitter {
         this._updatingColumnsResponsive = true;
 
         // Figure out how many columns to stack, and put them all in the first stack container.
-        var finalColumnCount = Math.max( Math.floor( this.width / minItemWidth ), 1 );
+        var finalColumnCount = Math.max(
+            Math.floor(this.width / minItemWidth),
+            1
+        );
         var stackColumnCount = columnCount - finalColumnCount;
 
-        var rootContentItem = this.root.contentItems[ 0 ];
-        var firstStackContainer = this._findAllStackContainers()[ 0 ];
-        for( var i = 0; i < stackColumnCount; i++ ) {
+        var rootContentItem = this.root.contentItems[0];
+        var firstStackContainer = this._findAllStackContainers()[0];
+        for (var i = 0; i < stackColumnCount; i++) {
             // Stack from right.
-            var column = rootContentItem.contentItems[ rootContentItem.contentItems.length - 1 ];
-            this._addChildContentItemsToContainer( firstStackContainer, column );
+            var column =
+                rootContentItem.contentItems[
+                    rootContentItem.contentItems.length - 1
+                ];
+            this._addChildContentItemsToContainer(firstStackContainer, column);
         }
 
         this._updatingColumnsResponsive = false;
@@ -1017,7 +1057,12 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @returns {bool} - True if responsive layout should be used; otherwise false.
      */
     _useResponsiveLayout() {
-        return this.config.settings && ( this.config.settings.responsiveMode == 'always' || ( this.config.settings.responsiveMode == 'onload' && this._firstLoad ) );
+        return (
+            this.config.settings &&
+            (this.config.settings.responsiveMode == 'always' ||
+                (this.config.settings.responsiveMode == 'onload' &&
+                    this._firstLoad))
+        );
     }
 
     /**
@@ -1026,16 +1071,15 @@ export default class GoldenLayout extends utils.EventEmitter {
      * @param {object} node - Node to search for content items.
      * @returns {void}
      */
-    _addChildContentItemsToContainer( container, node ) {
-        if( node.type === 'stack' ) {
-            node.contentItems.forEach( function( item ) {
-                container.addChild( item );
-                node.removeChild( item, true );
-            } );
-        }
-        else {
+    _addChildContentItemsToContainer(container, node) {
+        if (node.type === 'stack') {
+            node.contentItems.forEach(function(item) {
+                container.addChild(item);
+                node.removeChild(item, true);
+            });
+        } else {
             node.contentItems.forEach(item => {
-                this._addChildContentItemsToContainer( container, item );
+                this._addChildContentItemsToContainer(container, item);
             });
         }
     }
@@ -1046,7 +1090,7 @@ export default class GoldenLayout extends utils.EventEmitter {
      */
     _findAllStackContainers() {
         var stackContainers = [];
-        this._findAllStackContainersRecursive( stackContainers, this.root );
+        this._findAllStackContainersRecursive(stackContainers, this.root);
 
         return stackContainers;
     }
@@ -1059,13 +1103,12 @@ export default class GoldenLayout extends utils.EventEmitter {
      *
      * @returns {void}
      */
-    _findAllStackContainersRecursive( stackContainers, node ) {
+    _findAllStackContainersRecursive(stackContainers, node) {
         node.contentItems.forEach(item => {
-            if( item.type == 'stack' ) {
-                stackContainers.push( item );
-            }
-            else if( !item.isComponent ) {
-                this._findAllStackContainersRecursive( stackContainers, item );
+            if (item.type == 'stack') {
+                stackContainers.push(item);
+            } else if (!item.isComponent) {
+                this._findAllStackContainersRecursive(stackContainers, item);
             }
         });
     }

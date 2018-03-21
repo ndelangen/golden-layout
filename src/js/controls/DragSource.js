@@ -12,7 +12,7 @@ export default class DragSource {
      * @param {LayoutManager} layoutManager
      *
      */
-    constructor( element, itemConfig, layoutManager ) {
+    constructor(element, itemConfig, layoutManager) {
         this._element = element;
         this._itemConfig = itemConfig;
         this._layoutManager = layoutManager;
@@ -27,13 +27,13 @@ export default class DragSource {
      * @returns {void}
      */
     _createDragListener() {
-        if( this._dragListener !== null ) {
+        if (this._dragListener !== null) {
             this._dragListener.destroy();
         }
 
-        this._dragListener = new DragListener( this._element );
-        this._dragListener.on( 'dragStart', this._onDragStart, this );
-        this._dragListener.on( 'dragStop', this._createDragListener, this );
+        this._dragListener = new DragListener(this._element);
+        this._dragListener.on('dragStart', this._onDragStart, this);
+        this._dragListener.on('dragStop', this._createDragListener, this);
     }
 
     /**
@@ -44,14 +44,26 @@ export default class DragSource {
      *
      * @returns {void}
      */
-    _onDragStart( x, y ) {
+    _onDragStart(x, y) {
         var itemConfig = this._itemConfig;
-        if(typeof itemConfig === 'function') {
+        if (typeof itemConfig === 'function') {
             itemConfig = itemConfig();
         }
-        var contentItem = this._layoutManager._$normalizeContentItem(Object.assign({}, itemConfig)),
-            dragProxy = new DragProxy( x, y, this._dragListener, this._layoutManager, contentItem, null );
+        var contentItem = this._layoutManager._$normalizeContentItem(
+                Object.assign({}, itemConfig)
+            ),
+            dragProxy = new DragProxy(
+                x,
+                y,
+                this._dragListener,
+                this._layoutManager,
+                contentItem,
+                null
+            );
 
-        this._layoutManager.transitionIndicator.transitionElements( this._element, dragProxy.element );
+        this._layoutManager.transitionIndicator.transitionElements(
+            this._element,
+            dragProxy.element
+        );
     }
 }

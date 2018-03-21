@@ -10,30 +10,45 @@ export default class Component extends AbstractContentItem {
     constructor(layoutManager, config, parent) {
         super(layoutManager, config, parent);
 
-        var ComponentConstructor = layoutManager.getComponent(this.config.componentName),
-            componentConfig = Object.assign({}, this.config.componentState || {});
+        var ComponentConstructor = layoutManager.getComponent(
+                this.config.componentName
+            ),
+            componentConfig = Object.assign(
+                {},
+                this.config.componentState || {}
+            );
 
         componentConfig.componentName = this.config.componentName;
         this.componentName = this.config.componentName;
 
-        if(this.config.title === '') {
+        if (this.config.title === '') {
             this.config.title = this.config.componentName;
         }
 
         this.isComponent = true;
-        this.container = new container.ItemContainer(this.config, this, layoutManager);
-        this.instance = new ComponentConstructor(this.container, componentConfig);
+        this.container = new container.ItemContainer(
+            this.config,
+            this,
+            layoutManager
+        );
+        this.instance = new ComponentConstructor(
+            this.container,
+            componentConfig
+        );
         this.element = this.container._element;
-    };
+    }
 
     close() {
         this.parent.removeChild(this);
     }
 
     setSize() {
-        if(this.element.is(':visible')) {
+        if (this.element.is(':visible')) {
             // Do not update size of hidden components to prevent unwanted reflows
-            this.container._$setSize(this.element.width(), this.element.height());
+            this.container._$setSize(
+                this.element.width(),
+                this.element.height()
+            );
         }
     }
 

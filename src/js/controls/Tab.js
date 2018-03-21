@@ -8,53 +8,56 @@ import $ from 'jquery';
  * Represents an individual tab within a Stack's header
  */
 export default class Tab {
-
     /**
      * @param {Header} header
      * @param {AbstractContentItem} contentItem
-    */
-    constructor( header, contentItem ) {
+     */
+    constructor(header, contentItem) {
         this.header = header;
         this.contentItem = contentItem;
-        this.element = $( Tab._template );
-        this.titleElement = this.element.find( '.lm_title' );
-        this.closeElement = this.element.find( '.lm_close_tab' );
-        this.closeElement[ contentItem.config.isClosable ? 'show' : 'hide' ]();
+        this.element = $(Tab._template);
+        this.titleElement = this.element.find('.lm_title');
+        this.closeElement = this.element.find('.lm_close_tab');
+        this.closeElement[contentItem.config.isClosable ? 'show' : 'hide']();
         this.isActive = false;
 
-        this.setTitle( contentItem.config.title );
-        this.contentItem.on( 'titleChanged', this.setTitle, this );
+        this.setTitle(contentItem.config.title);
+        this.contentItem.on('titleChanged', this.setTitle, this);
 
         this._layoutManager = this.contentItem.layoutManager;
 
-        if(
+        if (
             this._layoutManager.config.settings.reorderEnabled === true &&
             contentItem.config.reorderEnabled === true
         ) {
-            this._dragListener = new DragListener( this.element );
-            this._dragListener.on( 'dragStart', this._onDragStart, this );
-            this.contentItem.on( 'destroy', this._dragListener.destroy, this._dragListener );
+            this._dragListener = new DragListener(this.element);
+            this._dragListener.on('dragStart', this._onDragStart, this);
+            this.contentItem.on(
+                'destroy',
+                this._dragListener.destroy,
+                this._dragListener
+            );
         }
 
         this._onTabClickFn = this._onTabClick.bind(this);
         this._onCloseClickFn = this._onCloseClick.bind(this);
 
-        this.element.on( 'mousedown touchstart', this._onTabClickFn );
+        this.element.on('mousedown touchstart', this._onTabClickFn);
 
-        if( this.contentItem.config.isClosable ) {
-            this.closeElement.on( 'click touchstart', this._onCloseClickFn );
+        if (this.contentItem.config.isClosable) {
+            this.closeElement.on('click touchstart', this._onCloseClickFn);
             this.closeElement.on('mousedown', this._onCloseMousedown);
         } else {
             this.closeElement.remove();
         }
 
         this.contentItem.tab = this;
-        this.contentItem.emit( 'tab', this );
-        this.contentItem.layoutManager.emit( 'tabCreated', this );
+        this.contentItem.emit('tab', this);
+        this.contentItem.layoutManager.emit('tabCreated', this);
 
-        if( this.contentItem.isComponent ) {
+        if (this.contentItem.isComponent) {
             this.contentItem.container.tab = this;
-            this.contentItem.container.emit( 'tab', this );
+            this.contentItem.container.emit('tab', this);
         }
     }
 
@@ -66,9 +69,9 @@ export default class Tab {
      * @public
      * @param {String} title can contain html
      */
-    setTitle( title ) {
-        this.element.attr( 'title', utils.stripTags( title ) );
-        this.titleElement.html( title );
+    setTitle(title) {
+        this.element.attr('title', utils.stripTags(title));
+        this.titleElement.html(title);
     }
 
     /**
@@ -78,16 +81,16 @@ export default class Tab {
      * @public
      * @param {Boolean} isActive
      */
-    setActive( isActive ) {
-        if( isActive === this.isActive ) {
+    setActive(isActive) {
+        if (isActive === this.isActive) {
             return;
         }
         this.isActive = isActive;
 
-        if( isActive ) {
-            this.element.addClass( 'lm_active' );
+        if (isActive) {
+            this.element.addClass('lm_active');
         } else {
-            this.element.removeClass( 'lm_active' );
+            this.element.removeClass('lm_active');
         }
     }
 
@@ -98,11 +101,15 @@ export default class Tab {
      * @returns {void}
      */
     _$destroy() {
-        this.element.off( 'mousedown touchstart', this._onTabClickFn );
-        this.closeElement.off( 'click touchstart', this._onCloseClickFn );
-        if( this._dragListener ) {
-            this.contentItem.off( 'destroy', this._dragListener.destroy, this._dragListener );
-            this._dragListener.off( 'dragStart', this._onDragStart );
+        this.element.off('mousedown touchstart', this._onTabClickFn);
+        this.closeElement.off('click touchstart', this._onCloseClickFn);
+        if (this._dragListener) {
+            this.contentItem.off(
+                'destroy',
+                this._dragListener.destroy,
+                this._dragListener
+            );
+            this._dragListener.off('dragStart', this._onDragStart);
             this._dragListener = null;
         }
         this.element.remove();
@@ -117,10 +124,9 @@ export default class Tab {
      * @private
      * @returns {void}
      */
-    _onDragStart( x, y ) {
-        if( !this.header._canDestroy )
-            return null;
-        if( this.contentItem.parent.isMaximised === true ) {
+    _onDragStart(x, y) {
+        if (!this.header._canDestroy) return null;
+        if (this.contentItem.parent.isMaximised === true) {
             this.contentItem.parent.toggleMaximise();
         }
         new DragProxy(
@@ -141,17 +147,17 @@ export default class Tab {
      * @private
      * @returns {void}
      */
-    _onTabClick( event ) {
+    _onTabClick(event) {
         // left mouse button or tap
-        if( event.button === 0 || event.type === 'touchstart' ) {
+        if (event.button === 0 || event.type === 'touchstart') {
             var activeContentItem = this.header.parent.getActiveContentItem();
-            if( this.contentItem !== activeContentItem ) {
-                this.header.parent.setActiveContentItem( this.contentItem );
+            if (this.contentItem !== activeContentItem) {
+                this.header.parent.setActiveContentItem(this.contentItem);
             }
 
             // middle mouse button
-        } else if( event.button === 1 && this.contentItem.config.isClosable ) {
-            this._onCloseClick( event );
+        } else if (event.button === 1 && this.contentItem.config.isClosable) {
+            this._onCloseClick(event);
         }
     }
 
@@ -164,13 +170,11 @@ export default class Tab {
      * @private
      * @returns {void}
      */
-    _onCloseClick( event ) {
+    _onCloseClick(event) {
         event.stopPropagation();
-        if( !this.header._canDestroy )
-            return;
-        this.header.parent.removeChild( this.contentItem );
+        if (!this.header._canDestroy) return;
+        this.header.parent.removeChild(this.contentItem);
     }
-
 
     /**
      * Callback to capture tab close button mousedown
@@ -191,6 +195,7 @@ export default class Tab {
  *
  * @type {String}
  */
-Tab._template = '<li class="lm_tab"><i class="lm_left"></i>' +
+Tab._template =
+    '<li class="lm_tab"><i class="lm_left"></i>' +
     '<span class="lm_title"></span><div class="lm_close_tab"></div>' +
     '<i class="lm_right"></i></li>';
