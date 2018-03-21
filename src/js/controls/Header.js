@@ -1,121 +1,115 @@
+import Tab from './Tab'
+import HeaderButton from './HeaderButton';
+import EventEmitter from '../utils/EventEmitter';
+
+import $ from 'jquery';
+
 /**
  * This class represents a header above a Stack ContentItem.
- *
- * @param {lm.LayoutManager} layoutManager
- * @param {lm.item.AbstractContentItem} parent
  */
-lm.controls.Header = function( layoutManager, parent ) {
-	lm.utils.EventEmitter.call( this );
+export default class Header extends EventEmitter {
+    constructor(layoutManager, parent) {
+    	super();
 
-	this.layoutManager = layoutManager;
-	this.element = $( lm.controls.Header._template );
+    	this.layoutManager = layoutManager;
+    	this.element = $(Header._template);
 
-	if( this.layoutManager.config.settings.selectionEnabled === true ) {
-		this.element.addClass( 'lm_selectable' );
-		this.element.on( 'click touchstart', lm.utils.fnBind( this._onHeaderClick, this ) );
-	}
+    	if(this.layoutManager.config.settings.selectionEnabled === true) {
+    		this.element.addClass('lm_selectable');
+    		this.element.on('click touchstart',  this._onHeaderClick.bind(this));
+    	}
 
-	this.tabsContainer = this.element.find( '.lm_tabs' );
-	this.tabDropdownContainer = this.element.find( '.lm_tabdropdown_list' );
-	this.tabDropdownContainer.hide();
-	this.controlsContainer = this.element.find( '.lm_controls' );
-	this.parent = parent;
-	this.parent.on( 'resize', this._updateTabSizes, this );
-	this.tabs = [];
-	this.activeContentItem = null;
-	this.closeButton = null;
-	this.dockButton = null;
-	this.tabDropdownButton = null;
-	this.hideAdditionalTabsDropdown = lm.utils.fnBind(this._hideAdditionalTabsDropdown, this);
-	$( document ).mouseup(this.hideAdditionalTabsDropdown);
+    	this.tabsContainer = this.element.find('.lm_tabs');
+    	this.tabDropdownContainer = this.element.find('.lm_tabdropdown_list');
+    	this.tabDropdownContainer.hide();
+    	this.controlsContainer = this.element.find('.lm_controls');
+    	this.parent = parent;
+    	this.parent.on('resize', this._updateTabSizes, this);
+    	this.tabs = [];
+    	this.activeContentItem = null;
+    	this.closeButton = null;
+    	this.dockButton = null;
+    	this.tabDropdownButton = null;
+    	this.hideAdditionalTabsDropdown = this._hideAdditionalTabsDropdown.bind(this);
+    	$(document).mouseup(this.hideAdditionalTabsDropdown);
 
-	this._lastVisibleTabIndex = -1;
-	this._tabControlOffset = this.layoutManager.config.settings.tabControlOffset;
-	this._createControls();
-};
-
-lm.controls.Header._template = [
-	'<div class="lm_header">',
-	'<ul class="lm_tabs"></ul>',
-	'<ul class="lm_controls"></ul>',
-	'<ul class="lm_tabdropdown_list"></ul>',
-	'</div>'
-].join( '' );
-
-lm.utils.copy( lm.controls.Header.prototype, {
+    	this._lastVisibleTabIndex = -1;
+    	this._tabControlOffset = this.layoutManager.config.settings.tabControlOffset;
+    	this._createControls();
+    }
 
 	/**
 	 * Creates a new tab and associates it with a contentItem
 	 *
-	 * @param    {lm.item.AbstractContentItem} contentItem
+	 * @param    {AbstractContentItem} contentItem
 	 * @param    {Integer} index The position of the tab
 	 *
 	 * @returns {void}
 	 */
-	createTab: function( contentItem, index ) {
+	createTab(contentItem, index) {
 		var tab, i;
 
 		//If there's already a tab relating to the
 		//content item, don't do anything
-		for( i = 0; i < this.tabs.length; i++ ) {
-			if( this.tabs[ i ].contentItem === contentItem ) {
+		for(i = 0; i < this.tabs.length; i++) {
+			if(this.tabs[i].contentItem === contentItem) {
 				return;
 			}
 		}
 
-		tab = new lm.controls.Tab( this, contentItem );
+		tab = new Tab(this, contentItem);
 
-		if( this.tabs.length === 0 ) {
-			this.tabs.push( tab );
-			this.tabsContainer.append( tab.element );
+		if(this.tabs.length === 0) {
+			this.tabs.push(tab);
+			this.tabsContainer.append(tab.element);
 			return;
 		}
 
-		if( index === undefined ) {
+		if(index === undefined) {
 			index = this.tabs.length;
 		}
 
-		if( index > 0 ) {
-			this.tabs[ index - 1 ].element.after( tab.element );
+		if(index > 0) {
+			this.tabs[index - 1].element.after(tab.element);
 		} else {
-			this.tabs[ 0 ].element.before( tab.element );
+			this.tabs[0].element.before(tab.element);
 		}
 
-		this.tabs.splice( index, 0, tab );
+		this.tabs.splice(index, 0, tab);
 		this._updateTabSizes();
-	},
+	}
 
 	/**
 	 * Finds a tab based on the contentItem its associated with and removes it.
 	 *
-	 * @param    {lm.item.AbstractContentItem} contentItem
+	 * @param    {AbstractContentItem} contentItem
 	 *
 	 * @returns {void}
 	 */
-	removeTab: function( contentItem ) {
-		for( var i = 0; i < this.tabs.length; i++ ) {
-			if( this.tabs[ i ].contentItem === contentItem ) {
-				this.tabs[ i ]._$destroy();
-				this.tabs.splice( i, 1 );
+	removeTab(contentItem) {
+		for(var i = 0; i < this.tabs.length; i++) {
+			if(this.tabs[i].contentItem === contentItem) {
+				this.tabs[i]._$destroy();
+				this.tabs.splice(i, 1);
 				return;
 			}
 		}
 
-		throw new Error( 'contentItem is not controlled by this header' );
-	},
+		throw new Error('contentItem is not controlled by this header');
+	}
 
 	/**
 	 * The programmatical equivalent of clicking a Tab.
 	 *
-	 * @param {lm.item.AbstractContentItem} contentItem
+	 * @param {AbstractContentItem} contentItem
 	 */
-	setActiveContentItem: function( contentItem ) {
+	setActiveContentItem(contentItem) {
 		var i, j, isActive, activeTab;
 
-		for( i = 0; i < this.tabs.length; i++ ) {
-			isActive = this.tabs[ i ].contentItem === contentItem;
-			this.tabs[ i ].setActive( isActive );
-			if( isActive === true ) {
+		for(i = 0; i < this.tabs.length; i++) {
+			isActive = this.tabs[i].contentItem === contentItem;
+			this.tabs[i].setActive(isActive);
+			if(isActive === true) {
 				this.activeContentItem = contentItem;
 				this.parent.config.activeItemIndex = i;
 			}
@@ -128,7 +122,7 @@ lm.utils.copy( lm.controls.Header.prototype, {
 			 */
 			if (this._lastVisibleTabIndex !== -1 && this.parent.config.activeItemIndex > this._lastVisibleTabIndex) {
 				activeTab = this.tabs[this.parent.config.activeItemIndex];
-				for ( j = this.parent.config.activeItemIndex; j > 0; j-- ) {
+				for (j = this.parent.config.activeItemIndex; j > 0; j--) {
 					this.tabs[j] = this.tabs[j - 1];
 				}
 				this.tabs[0]                       = activeTab;
@@ -137,8 +131,8 @@ lm.utils.copy( lm.controls.Header.prototype, {
 		}
 
 		this._updateTabSizes();
-		this.parent.emitBubblingEvent( 'stateChanged' );
-	},
+		this.parent.emitBubblingEvent('stateChanged');
+	}
 
 	/**
 	 * Programmatically operate with header position.
@@ -147,18 +141,18 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {string} previous header position
 	 */
-	position: function( position ) {
+	position(position) {
 		var previous = this.parent._header.show;
-		if( this.parent._docker && this.parent._docker.docked )
-			throw new Error( 'Can\'t change header position in docked stack' );
-		if( previous && !this.parent._side )
+		if(this.parent._docker && this.parent._docker.docked)
+			throw new Error('Can\'t change header position in docked stack');
+		if(previous && !this.parent._side)
 			previous = 'top';
-		if( position !== undefined && this.parent._header.show != position ) {
+		if(position !== undefined && this.parent._header.show != position) {
 			this.parent._header.show = position;
 			this.parent._setupHeaderPosition();
 		}
 		return previous;
-	},
+	}
 
 	/**
 	 * Programmatically set closability.
@@ -168,15 +162,15 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {Boolean} Whether the action was successful
 	 */
-	_$setClosable: function( isClosable ) {
+	_$setClosable(isClosable) {
 		this._canDestroy = isClosable || this.tabs.length > 1;
-		if( this.closeButton && this._isClosable() ) {
-			this.closeButton.element[ isClosable ? "show" : "hide" ]();
+		if(this.closeButton && this._isClosable()) {
+			this.closeButton.element[isClosable ? "show" : "hide"]();
 			return true;
 		}
 
 		return false;
-	},
+	}
 
 	/**
 	 * Programmatically set ability to dock.
@@ -186,13 +180,13 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {Boolean} Whether the action was successful
 	 */
-	_setDockable: function( isDockable ) {
-		if ( this.dockButton && this.parent._header && this.parent._header.dock ) {
-			this.dockButton.element.toggle( !!isDockable );
+	_setDockable(isDockable) {
+		if (this.dockButton && this.parent._header && this.parent._header.dock) {
+			this.dockButton.element.toggle(!!isDockable);
 			return true;
 		}
 		return false;
-	},
+	}
 
 	/**
 	 * Destroys the entire header
@@ -201,31 +195,31 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_$destroy: function() {
-		this.emit( 'destroy', this );
+	_$destroy() {
+		this.emit('destroy', this);
 
-		for( var i = 0; i < this.tabs.length; i++ ) {
-			this.tabs[ i ]._$destroy();
+		for(var i = 0; i < this.tabs.length; i++) {
+			this.tabs[i]._$destroy();
 		}
-		$( document ).off('mouseup', this.hideAdditionalTabsDropdown);
+		$(document).off('mouseup', this.hideAdditionalTabsDropdown);
 		this.element.remove();
-	},
+	}
 
 	/**
 	 * get settings from header
 	 *
 	 * @returns {string} when exists
 	 */
-	_getHeaderSetting: function( name ) {
-		if( name in this.parent._header )
-			return this.parent._header[ name ];
-	},
+	_getHeaderSetting(name) {
+		if(name in this.parent._header)
+			return this.parent._header[name];
+	}
 	/**
 	 * Creates the popout, maximise and close buttons in the header's top right corner
 	 *
 	 * @returns {void}
 	 */
-	_createControls: function() {
+	_createControls() {
 		var closeStack,
 			popout,
 			label,
@@ -239,71 +233,71 @@ lm.utils.copy( lm.controls.Header.prototype, {
 		/**
 		 * Dropdown to show additional tabs.
 		 */
-		showTabDropdown = lm.utils.fnBind( this._showAdditionalTabsDropdown, this );
+		showTabDropdown = this._showAdditionalTabsDropdown.bind(this);
 		tabDropdownLabel = this.layoutManager.config.labels.tabDropdown;
-		this.tabDropdownButton = new lm.controls.HeaderButton( this, tabDropdownLabel, 'lm_tabdropdown', showTabDropdown );
+		this.tabDropdownButton = new HeaderButton(this, tabDropdownLabel, 'lm_tabdropdown', showTabDropdown);
 		this.tabDropdownButton.element.hide();
 
-		if( this.parent._header && this.parent._header.dock ) {
-			var button = lm.utils.fnBind( this.parent.dock, this.parent );
-			var label = this._getHeaderSetting( 'dock' );
-			this.dockButton = new lm.controls.HeaderButton( this, label, 'lm_dock', button );
+		if(this.parent._header && this.parent._header.dock) {
+			var button = this.parent.dock.bind(this.parent);
+			var label = this._getHeaderSetting('dock');
+			this.dockButton = new HeaderButton(this, label, 'lm_dock', button);
 		}
 
 		/**
 		 * Popout control to launch component in new window.
 		 */
-		if( this._getHeaderSetting( 'popout' ) ) {
-			popout = lm.utils.fnBind( this._onPopoutClick, this );
-			label = this._getHeaderSetting( 'popout' );
-			new lm.controls.HeaderButton( this, label, 'lm_popout', popout );
+		if(this._getHeaderSetting('popout')) {
+			popout = this._onPopoutClick.bind(this);
+			label = this._getHeaderSetting('popout');
+			new HeaderButton(this, label, 'lm_popout', popout);
 		}
 
 		/**
 		 * Maximise control - set the component to the full size of the layout
 		 */
-		if( this._getHeaderSetting( 'maximise' ) ) {
-			maximise = lm.utils.fnBind( this.parent.toggleMaximise, this.parent );
-			maximiseLabel = this._getHeaderSetting( 'maximise' );
-			minimiseLabel = this._getHeaderSetting( 'minimise' );
-			maximiseButton = new lm.controls.HeaderButton( this, maximiseLabel, 'lm_maximise', maximise );
+		if(this._getHeaderSetting('maximise')) {
+			maximise = this.parent.toggleMaximise.bind(this.parent);
+			maximiseLabel = this._getHeaderSetting('maximise');
+			minimiseLabel = this._getHeaderSetting('minimise');
+			maximiseButton = new HeaderButton(this, maximiseLabel, 'lm_maximise', maximise);
 
-			this.parent.on( 'maximised', function() {
-				maximiseButton.element.attr( 'title', minimiseLabel );
-			} );
+			this.parent.on('maximised', function() {
+				maximiseButton.element.attr('title', minimiseLabel);
+			});
 
-			this.parent.on( 'minimised', function() {
-				maximiseButton.element.attr( 'title', maximiseLabel );
-			} );
+			this.parent.on('minimised', function() {
+				maximiseButton.element.attr('title', maximiseLabel);
+			});
 		}
 
 		/**
 		 * Close button
 		 */
-		if( this._isClosable() ) {
-			closeStack = lm.utils.fnBind( this.parent.remove, this.parent );
-			label = this._getHeaderSetting( 'close' );
-			this.closeButton = new lm.controls.HeaderButton( this, label, 'lm_close', closeStack );
+		if(this._isClosable()) {
+			closeStack = this.parent.remove.bind(this.parent);
+			label = this._getHeaderSetting('close');
+			this.closeButton = new HeaderButton(this, label, 'lm_close', closeStack);
 		}
-	},
+	}
 
 	/**
 	 * Shows drop down for additional tabs when there are too many to display.
 	 *
 	 * @returns {void}
 	 */
-	_showAdditionalTabsDropdown: function() {
+	_showAdditionalTabsDropdown() {
 		this.tabDropdownContainer.show();
-	},
+	}
 
 	/**
 	 * Hides drop down for additional tabs when there are too many to display.
 	 *
 	 * @returns {void}
 	 */
-	_hideAdditionalTabsDropdown: function( e ) {
+	_hideAdditionalTabsDropdown(e) {
 		this.tabDropdownContainer.hide();
-	},
+	}
 
 	/**
 	 * Checks whether the header is closable based on the parent config and
@@ -311,17 +305,17 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {Boolean} Whether the header is closable.
 	 */
-	_isClosable: function() {
+	_isClosable() {
 		return this.parent.config.isClosable && this.layoutManager.config.settings.showCloseIcon;
-	},
+	}
 
-	_onPopoutClick: function() {
-		if( this.layoutManager.config.settings.popoutWholeStack === true ) {
+	_onPopoutClick() {
+		if(this.layoutManager.config.settings.popoutWholeStack === true) {
 			this.parent.popout();
 		} else {
 			this.activeContentItem.popout();
 		}
-	},
+	}
 
 
 	/**
@@ -331,30 +325,30 @@ lm.utils.copy( lm.controls.Header.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onHeaderClick: function( event ) {
-		if( event.target === this.element[ 0 ] ) {
+	_onHeaderClick(event) {
+		if(event.target === this.element[0]) {
 			this.parent.select();
 		}
-	},
+	}
 
 	/**
 	 * Pushes the tabs to the tab dropdown if the available space is not sufficient
 	 *
 	 * @returns {void}
 	 */
-	_updateTabSizes: function(showTabMenu) {
-		if( this.tabs.length === 0 ) {
+	_updateTabSizes(showTabMenu) {
+		if(this.tabs.length === 0) {
 			return;
 		}
 
 		//Show the menu based on function argument
 		this.tabDropdownButton.element.toggle(showTabMenu === true);
 
-		var size = function( val ) {
+		var size = function(val) {
 			return val ? 'width' : 'height';
 		};
-		this.element.css( size( !this.parent._sided ), '' );
-		this.element[ size( this.parent._sided ) ]( this.layoutManager.config.dimensions.headerHeight );
+		this.element.css(size(!this.parent._sided), '');
+		this.element[size(this.parent._sided)](this.layoutManager.config.dimensions.headerHeight);
 		var availableWidth = this.element.outerWidth() - this.controlsContainer.outerWidth() - this._tabControlOffset,
 			cumulativeTabWidth = 0,
 			visibleTabWidth = 0,
@@ -366,18 +360,18 @@ lm.utils.copy( lm.controls.Header.prototype, {
 			tabWidth,
 			tabOverlapAllowance = this.layoutManager.config.settings.tabOverlapAllowance,
 			tabOverlapAllowanceExceeded = false,
-			activeIndex = (this.activeContentItem ? this.tabs.indexOf(this.activeContentItem.tab) : 0),
+			activeIndex = this.activeContentItem ? this.tabs.indexOf(this.activeContentItem.tab) : 0,
 			activeTab = this.tabs[activeIndex];
-		if( this.parent._sided )
+		if(this.parent._sided)
 			availableWidth = this.element.outerHeight() - this.controlsContainer.outerHeight() - this._tabControlOffset;
 		this._lastVisibleTabIndex = -1;
 
-		for( i = 0; i < this.tabs.length; i++ ) {
-			tabElement = this.tabs[ i ].element;
+		for(i = 0; i < this.tabs.length; i++) {
+			tabElement = this.tabs[i].element;
 
 			//Put the tab in the tabContainer so its true width can be checked
-			this.tabsContainer.append( tabElement );
-			tabWidth = tabElement.outerWidth() + parseInt( tabElement.css( 'margin-right' ), 10 );
+			this.tabsContainer.append(tabElement);
+			tabWidth = tabElement.outerWidth() + parseInt(tabElement.css('margin-right'), 10);
 
 			cumulativeTabWidth += tabWidth;
 
@@ -390,7 +384,7 @@ lm.utils.copy( lm.controls.Header.prototype, {
 			}
 
 			// If the tabs won't fit, check the overlap allowance.
-			if( visibleTabWidth > availableWidth ) {
+			if(visibleTabWidth > availableWidth) {
 
 				//Once allowance is exceeded, all remaining tabs go to menu.
 				if (!tabOverlapAllowanceExceeded) {
@@ -398,14 +392,14 @@ lm.utils.copy( lm.controls.Header.prototype, {
 					//No overlap for first tab or active tab
 					//Overlap spreads among non-active, non-first tabs
 					if (activeIndex > 0 && activeIndex <= i) {
-						overlap = ( visibleTabWidth - availableWidth ) / (i - 1);
+						overlap = (visibleTabWidth - availableWidth) / (i - 1);
 					} else {
-						overlap = ( visibleTabWidth - availableWidth ) / i;
+						overlap = (visibleTabWidth - availableWidth) / i;
 					}
 
 					//Check overlap against allowance.
 					if (overlap < tabOverlapAllowance) {
-						for ( j = 0; j <= i; j++ ) {
+						for (j = 0; j <= i; j++) {
 							marginLeft = (j !== activeIndex && j !== 0) ? '-' + overlap + 'px' : '';
 							this.tabs[j].element.css({'z-index': i - j, 'margin-left': marginLeft});
 						}
@@ -437,10 +431,17 @@ lm.utils.copy( lm.controls.Header.prototype, {
 			else {
 				this._lastVisibleTabIndex = i;
 				tabElement.css({'z-index': 'auto', 'margin-left': ''});
-				this.tabsContainer.append( tabElement );
+				this.tabsContainer.append(tabElement);
 			}
 		}
 
 	}
-} );
+}
 
+Header._template = [
+	'<div class="lm_header">',
+	'<ul class="lm_tabs"></ul>',
+	'<ul class="lm_controls"></ul>',
+	'<ul class="lm_tabdropdown_list"></ul>',
+	'</div>'
+].join('');

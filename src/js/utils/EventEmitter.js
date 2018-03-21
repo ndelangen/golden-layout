@@ -3,112 +3,114 @@
  * implementation. On top of emitting the
  * actual event it emits an
  *
- * lm.utils.EventEmitter.ALL_EVENT
+ * EventEmitter.ALL_EVENT
  *
  * event for every event triggered. This allows
  * to hook into it and proxy events forwards
  *
- * @constructor
  */
-lm.utils.EventEmitter = function() {
-	this._mSubscriptions = {};
-	this._mSubscriptions[ lm.utils.EventEmitter.ALL_EVENT ] = [];
+export default class EventEmitter {
+    constructor() {
+    	this._mSubscriptions = {};
+    	this._mSubscriptions[EventEmitter.ALL_EVENT] = [];
 
-	/**
-	 * Listen for events
-	 *
-	 * @param   {String} sEvent    The name of the event to listen to
-	 * @param   {Function} fCallback The callback to execute when the event occurs
-	 * @param   {[Object]} oContext The value of the this pointer within the callback function
-	 *
-	 * @returns {void}
-	 */
-	this.on = function( sEvent, fCallback, oContext ) {
-		if( !lm.utils.isFunction( fCallback ) ) {
-			throw new Error( 'Tried to listen to event ' + sEvent + ' with non-function callback ' + fCallback );
-		}
+    	/**
+    	 * Alias for unbind
+    	 */
+    	this.off = this.unbind;
 
-		if( !this._mSubscriptions[ sEvent ] ) {
-			this._mSubscriptions[ sEvent ] = [];
-		}
+    	/**
+    	 * Alias for emit
+    	 */
+    	this.trigger = this.emit;
+    }
 
-		this._mSubscriptions[ sEvent ].push( { fn: fCallback, ctx: oContext } );
-	};
+    /**
+     * Listen for events
+     *
+     * @param   {String} sEvent    The name of the event to listen to
+     * @param   {Function} fCallback The callback to execute when the event occurs
+     * @param   {[Object]} oContext The value of the this pointer within the callback function
+     *
+     * @returns {void}
+     */
+    on( sEvent, fCallback, oContext ) {
+        if(!(typeof fCallback === 'function')) {
+            throw new Error( 'Tried to listen to event ' + sEvent + ' with non-function callback ' + fCallback );
+        }
 
-	/**
-	 * Emit an event and notify listeners
-	 *
-	 * @param   {String} sEvent The name of the event
-	 * @param    {Mixed}  various additional arguments that will be passed to the listener
-	 *
-	 * @returns {void}
-	 */
-	this.emit = function( sEvent ) {
-		var i, ctx, args;
+        if( !this._mSubscriptions[ sEvent ] ) {
+            this._mSubscriptions[ sEvent ] = [];
+        }
 
-		args = Array.prototype.slice.call( arguments, 1 );
+        this._mSubscriptions[ sEvent ].push( { fn: fCallback, ctx: oContext } );
+    };
 
-		var subs = this._mSubscriptions[ sEvent ];
+    /**
+     * Emit an event and notify listeners
+     *
+     * @param   {String} sEvent The name of the event
+     * @param    {Mixed}  various additional arguments that will be passed to the listener
+     *
+     * @returns {void}
+     */
+    emit( sEvent ) {
+        var i, ctx, args;
 
-		if( subs ) {
-        	subs = subs.slice();
-			for( i = 0; i < subs.length; i++ ) {
-				ctx = subs[ i ].ctx || {};
+        args = Array.prototype.slice.call( arguments, 1 );
+
+        var subs = this._mSubscriptions[ sEvent ];
+
+        if( subs ) {
+            subs = subs.slice();
+            for( i = 0; i < subs.length; i++ ) {
+                ctx = subs[ i ].ctx || {};
                 subs[ i ].fn.apply( ctx, args );
-			}
-		}
+            }
+        }
 
-		args.unshift( sEvent );
+        args.unshift( sEvent );
 
-		var allEventSubs = this._mSubscriptions[ lm.utils.EventEmitter.ALL_EVENT ].slice()
+        var allEventSubs = this._mSubscriptions[ EventEmitter.ALL_EVENT ].slice()
 
-		for( i = 0; i <allEventSubs.length; i++ ) {
-			ctx = allEventSubs[ i ].ctx || {};
+        for( i = 0; i <allEventSubs.length; i++ ) {
+            ctx = allEventSubs[ i ].ctx || {};
             allEventSubs[ i ].fn.apply( ctx, args );
-		}
-	};
+        }
+    };
 
-	/**
-	 * Removes a listener for an event, or all listeners if no callback and context is provided.
-	 *
-	 * @param   {String} sEvent    The name of the event
-	 * @param   {Function} fCallback The previously registered callback method (optional)
-	 * @param   {Object} oContext  The previously registered context (optional)
-	 *
-	 * @returns {void}
-	 */
-	this.unbind = function( sEvent, fCallback, oContext ) {
-		if( !this._mSubscriptions[ sEvent ] ) {
-			throw new Error( 'No subscribtions to unsubscribe for event ' + sEvent );
-		}
+    /**
+     * Removes a listener for an event, or all listeners if no callback and context is provided.
+     *
+     * @param   {String} sEvent    The name of the event
+     * @param   {Function} fCallback The previously registered callback method (optional)
+     * @param   {Object} oContext  The previously registered context (optional)
+     *
+     * @returns {void}
+     */
+    unbind( sEvent, fCallback, oContext ) {
+        if( !this._mSubscriptions[ sEvent ] ) {
+            throw new Error( 'No subscribtions to unsubscribe for event ' + sEvent );
+        }
 
-		var i, bUnbound = false;
+        var i, bUnbound = false;
 
-		for( i = 0; i < this._mSubscriptions[ sEvent ].length; i++ ) {
-			if
-			(
-				( !fCallback || this._mSubscriptions[ sEvent ][ i ].fn === fCallback ) &&
-				( !oContext || oContext === this._mSubscriptions[ sEvent ][ i ].ctx )
-			) {
-				this._mSubscriptions[ sEvent ].splice( i, 1 );
-				bUnbound = true;
-			}
-		}
+        for( i = 0; i < this._mSubscriptions[ sEvent ].length; i++ ) {
+            if
+            (
+                ( !fCallback || this._mSubscriptions[ sEvent ][ i ].fn === fCallback ) &&
+                ( !oContext || oContext === this._mSubscriptions[ sEvent ][ i ].ctx )
+            ) {
+                this._mSubscriptions[ sEvent ].splice( i, 1 );
+                bUnbound = true;
+            }
+        }
 
-		if( bUnbound === false ) {
-			throw new Error( 'Nothing to unbind for ' + sEvent );
-		}
-	};
+        if( bUnbound === false ) {
+            throw new Error( 'Nothing to unbind for ' + sEvent );
+        }
+    };
 
-	/**
-	 * Alias for unbind
-	 */
-	this.off = this.unbind;
-
-	/**
-	 * Alias for emit
-	 */
-	this.trigger = this.emit;
 };
 
 /**
@@ -116,10 +118,10 @@ lm.utils.EventEmitter = function() {
  *
  * usage
  *
- * myEmitter.on( lm.utils.EventEmitter.ALL_EVENT, function( eventName, argsArray ){
+ * myEmitter.on( EventEmitter.ALL_EVENT, function( eventName, argsArray ){
  * 	//do stuff
  * });
  *
  * @type {String}
  */
-lm.utils.EventEmitter.ALL_EVENT = '__all';
+EventEmitter.ALL_EVENT = '__all';

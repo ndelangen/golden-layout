@@ -1,98 +1,102 @@
+import ReactComponentHandler from './utils/ReactComponentHandler';
+import ConfigurationError from './errors/ConfigurationError';
+import DropTargetIndicator from './controls/DropTargetIndicator';
+import TransitionIndicator from './controls/TransitionIndicator';
+import DragSource from './controls/DragSource';
+import BrowserPopout from './controls/BrowserPopout';
+
+import * as items from './items/index';
+import defaultConfig from './config/defaultConfig';
+import * as utils from './utils/index';
+
+import $ from 'jquery';
+
 /**
  * The main class that will be exposed as GoldenLayout.
  *
- * @public
- * @constructor
- * @param {GoldenLayout config} config
- * @param {[DOM element container]} container Can be a jQuery selector string or a Dom element. Defaults to body
- *
- * @returns {VOID}
+ * @returns {void}
  */
-lm.LayoutManager = function( config, container ) {
+export default class GoldenLayout extends utills.EventEmitter {
 
-	if( !$ || typeof $.noConflict !== 'function' ) {
-		var errorMsg = 'jQuery is missing as dependency for GoldenLayout. ';
-		errorMsg += 'Please either expose $ on GoldenLayout\'s scope (e.g. window) or add "jquery" to ';
-		errorMsg += 'your paths when using RequireJS/AMD';
-		throw new Error( errorMsg );
-	}
-	lm.utils.EventEmitter.call( this );
+    /*
+     * @public
+     * @constructor
+     * @param {GoldenLayout config} config
+     * @param {[DOM element container]} container Can be a jQuery selector string or a Dom element. Defaults to body
+    */
+    constructor(config, container) {
+        super();
 
-	this.isInitialised = false;
-	this._isFullPage = false;
-	this._resizeTimeoutId = null;
-	this._components = { 'lm-react-component': lm.utils.ReactComponentHandler };
-	this._itemAreas = [];
-	this._resizeFunction = lm.utils.fnBind( this._onResize, this );
-	this._unloadFunction = lm.utils.fnBind( this._onUnload, this );
-	this._maximisedItem = null;
-	this._maximisePlaceholder = $( '<div class="lm_maximise_place"></div>' );
-	this._creationTimeoutPassed = false;
-	this._subWindowsCreated = false;
-	this._dragSources = [];
-	this._updatingColumnsResponsive = false;
-	this._firstLoad = true;
+    	this.isInitialised = false;
+    	this._isFullPage = false;
+    	this._resizeTimeoutId = null;
+    	this._components = { 'lm-react-component': utils.ReactComponentHandler };
+    	this._itemAreas = [];
+    	this._resizeFunction = this._onResize.bind(this);
+    	this._unloadFunction = this._onUnload.bind(this);
+    	this._maximisedItem = null;
+        // TODO replace JQuery
+    	this._maximisePlaceholder = $( '<div class="lm_maximise_place"></div>' );
+    	this._creationTimeoutPassed = false;
+    	this._subWindowsCreated = false;
+    	this._dragSources = [];
+    	this._updatingColumnsResponsive = false;
+    	this._firstLoad = true;
 
-	this.width = null;
-	this.height = null;
-	this.root = null;
-	this.openPopouts = [];
-	this.selectedItem = null;
-	this.isSubWindow = false;
-	this.eventHub = new lm.utils.EventHub( this );
-	this.config = this._createConfig( config );
-	this.container = container;
-	this.dropTargetIndicator = null;
-	this.transitionIndicator = null;
-	this.tabDropPlaceholder = $( '<div class="lm_drop_tab_placeholder"></div>' );
+    	this.width = null;
+    	this.height = null;
+    	this.root = null;
+    	this.openPopouts = [];
+    	this.selectedItem = null;
+    	this.isSubWindow = false;
+    	this.eventHub = new utils.EventHub(this);
+    	this.config = this._createConfig( config );
+    	this.container = container;
+    	this.dropTargetIndicator = null;
+    	this.transitionIndicator = null;
+    	this.tabDropPlaceholder = $( '<div class="lm_drop_tab_placeholder"></div>' );
 
-	if( this.isSubWindow === true ) {
-		$( 'body' ).css( 'visibility', 'hidden' );
-	}
+    	if( this.isSubWindow === true ) {
+            document.querySelector('body').style.visibility = 'hidden';
+    	}
 
-	this._typeToItem = {
-		'column': lm.utils.fnBind( lm.items.RowOrColumn, this, [ true ] ),
-		'row': lm.utils.fnBind( lm.items.RowOrColumn, this, [ false ] ),
-		'stack': lm.items.Stack,
-		'component': lm.items.Component
-	};
-};
+    	this._typeToItem = {
+    		'column': items.RowOrColumn.bind(this, true),
+    		'row': items.RowOrColumn.bind(this, false),
+    		'stack': items.Stack,
+    		'component': items.Component
+    	};
+    };
 
-/**
- * Hook that allows to access private classes
- */
-lm.LayoutManager.__lm = lm;
+    /**
+     * Takes a GoldenLayout configuration object and
+     * replaces its keys and values recursively with
+     * one letter codes
+     *
+     * @static
+     * @public
+     * @param   {Object} config A GoldenLayout config object
+     *
+     * @returns {Object} minified config
+     */
+    static minifyConfig( config ) {
+    	return new utils.ConfigMinifier().minifyConfig( config );
+    }
 
-/**
- * Takes a GoldenLayout configuration object and
- * replaces its keys and values recursively with
- * one letter codes
- *
- * @static
- * @public
- * @param   {Object} config A GoldenLayout config object
- *
- * @returns {Object} minified config
- */
-lm.LayoutManager.minifyConfig = function( config ) {
-	return ( new lm.utils.ConfigMinifier() ).minifyConfig( config );
-};
+    /**
+     * Takes a configuration Object that was previously minified
+     * using minifyConfig and returns its original version
+     *
+     * @static
+     * @public
+     * @param   {Object} minifiedConfig
+     *
+     * @returns {Object} the original configuration
+     */
+    static unminifyConfig( config ) {
+    	return new utils.ConfigMinifier().unminifyConfig( config );
+    }
 
-/**
- * Takes a configuration Object that was previously minified
- * using minifyConfig and returns its original version
- *
- * @static
- * @public
- * @param   {Object} minifiedConfig
- *
- * @returns {Object} the original configuration
- */
-lm.LayoutManager.unminifyConfig = function( config ) {
-	return ( new lm.utils.ConfigMinifier() ).unminifyConfig( config );
-};
-
-lm.utils.copy( lm.LayoutManager.prototype, {
 
 	/**
 	 * Register a component with the layout manager. If a configuration node
@@ -111,7 +115,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	registerComponent: function( name, constructor ) {
+	registerComponent( name, constructor ) {
 		if( typeof constructor !== 'function' ) {
 			throw new Error( 'Please register a constructor function' );
 		}
@@ -121,7 +125,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		this._components[ name ] = constructor;
-	},
+	}
 
 	/**
 	 * Creates a layout configuration object based on the the current state
@@ -129,14 +133,14 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 * @public
 	 * @returns {Object} GoldenLayout configuration
 	 */
-	toConfig: function( root ) {
+	toConfig( root ) {
 		var config, next, i;
 
 		if( this.isInitialised === false ) {
 			throw new Error( 'Can\'t create config, layout not yet initialised' );
 		}
 
-		if( root && !( root instanceof lm.items.AbstractContentItem ) ) {
+		if( root && !( root instanceof items.AbstractContentItem ) ) {
 			throw new Error( 'Root must be a ContentItem' );
 		}
 
@@ -144,9 +148,9 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		 * settings & labels
 		 */
 		config = {
-			settings: lm.utils.copy( {}, this.config.settings ),
-			dimensions: lm.utils.copy( {}, this.config.dimensions ),
-			labels: lm.utils.copy( {}, this.config.labels )
+			settings: utils.copy( {}, this.config.settings ),
+			dimensions: utils.copy( {}, this.config.dimensions ),
+			labels: utils.copy( {}, this.config.labels )
 		};
 
 		/*
@@ -192,7 +196,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		 */
 		config.maximisedItemId = this._maximisedItem ? '__glMaximised' : null;
 		return config;
-	},
+	}
 
 	/**
 	 * Returns a previously registered component
@@ -202,13 +206,13 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {Function}
 	 */
-	getComponent: function( name ) {
+	getComponent( name ) {
 		if( this._components[ name ] === undefined ) {
-			throw new lm.errors.ConfigurationError( 'Unknown component "' + name + '"' );
+			throw new ConfigurationError( 'Unknown component "' + name + '"' );
 		}
 
 		return this._components[ name ];
-	},
+	}
 
 	/**
 	 * Creates the actual layout. Must be called after all initial components
@@ -222,7 +226,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	init: function() {
+	init() {
 
 		/**
 		 * Create the popout windows straight away. If popouts are blocked
@@ -239,7 +243,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		 * If the document isn't ready yet, wait for it.
 		 */
 		if( document.readyState === 'loading' || document.body === null ) {
-			$( document ).ready( lm.utils.fnBind( this.init, this ) );
+			$( document ).ready(this.init.bind(this) );
 			return;
 		}
 
@@ -249,7 +253,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		 * with GoldenLayout
 		 */
 		if( this.isSubWindow === true && this._creationTimeoutPassed === false ) {
-			setTimeout( lm.utils.fnBind( this.init, this ), 7 );
+			setTimeout(this.init.bind(this), 7 );
 			this._creationTimeoutPassed = true;
 			return;
 		}
@@ -259,15 +263,15 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		this._setContainer();
-		this.dropTargetIndicator = new lm.controls.DropTargetIndicator( this.container );
-		this.transitionIndicator = new lm.controls.TransitionIndicator();
+		this.dropTargetIndicator = new DropTargetIndicator( this.container );
+		this.transitionIndicator = new TransitionIndicator();
 		this.updateSize();
 		this._create( this.config );
 		this._bindEvents();
 		this.isInitialised = true;
 		this._adjustColumnsResponsive();
 		this.emit( 'initialised' );
-	},
+	}
 
 	/**
 	 * Updates the layout managers size
@@ -278,7 +282,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	updateSize: function( width, height ) {
+	updateSize( width, height ) {
 		if( arguments.length === 2 ) {
 			this.width = width;
 			this.height = height;
@@ -298,16 +302,16 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 
 			this._adjustColumnsResponsive();
 		}
-	},
+	}
 
 	/**
-	 * Destroys the LayoutManager instance itself as well as every ContentItem
-	 * within it. After this is called nothing should be left of the LayoutManager.
+	 * Destroys the GoldenLayout instance itself as well as every ContentItem
+	 * within it. After this is called nothing should be left of the GoldenLayout.
 	 *
 	 * @public
 	 * @returns {void}
 	 */
-	destroy: function() {
+	destroy() {
 		if( this.isInitialised === false ) {
 			return;
 		}
@@ -328,7 +332,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			dragSource._dragListener = null;
 		} );
 		this._dragSources = [];
-	},
+	}
 
 	/**
 	 * Recursively creates new item tree structures based on a provided
@@ -338,13 +342,13 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 * @param   {Object} config ItemConfig
 	 * @param   {[ContentItem]} parent The item the newly created item should be a child of
 	 *
-	 * @returns {lm.items.ContentItem}
+	 * @returns {items.ContentItem}
 	 */
-	createContentItem: function( config, parent ) {
+	createContentItem( config, parent ) {
 		var typeErrorMsg, contentItem;
 
 		if( typeof config.type !== 'string' ) {
-			throw new lm.errors.ConfigurationError( 'Missing parameter \'type\'', config );
+			throw new ConfigurationError( 'Missing parameter \'type\'', config );
 		}
 
 		if( config.type === 'react-component' ) {
@@ -354,9 +358,9 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 
 		if( !this._typeToItem[ config.type ] ) {
 			typeErrorMsg = 'Unknown type \'' + config.type + '\'. ' +
-				'Valid types are ' + lm.utils.objectKeys( this._typeToItem ).join( ',' );
+				'Valid types are ' + Object.keys( this._typeToItem ).join( ',' );
 
-			throw new lm.errors.ConfigurationError( typeErrorMsg );
+			throw new ConfigurationError( typeErrorMsg );
 		}
 
 
@@ -368,13 +372,13 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		config.type === 'component' &&
 
 		// and it's not already within a stack
-		!( parent instanceof lm.items.Stack ) &&
+		!( parent instanceof items.Stack ) &&
 
 		// and we have a parent
 		!!parent &&
 
 		// and it's not the topmost item in a new window
-		!( this.isSubWindow === true && parent instanceof lm.items.Root )
+		!( this.isSubWindow === true && parent instanceof items.Root )
 		) {
 			config = {
 				type: 'stack',
@@ -386,22 +390,22 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 
 		contentItem = new this._typeToItem[ config.type ]( this, config, parent );
 		return contentItem;
-	},
+	}
 
 	/**
 	 * Creates a popout window with the specified content and dimensions
 	 *
-	 * @param   {Object|lm.itemsAbstractContentItem} configOrContentItem
+	 * @param   {Object|itemsAbstractContentItem} configOrContentItem
 	 * @param   {[Object]} dimensions A map with width, height, left and top
 	 * @param    {[String]} parentId the id of the element this item will be appended to
 	 *                             when popIn is called
 	 * @param    {[Number]} indexInParent The position of this item within its parent element
 
-	 * @returns {lm.controls.BrowserPopout}
+	 * @returns {BrowserPopout}
 	 */
-	createPopout: function( configOrContentItem, dimensions, parentId, indexInParent ) {
+	createPopout( configOrContentItem, dimensions, parentId, indexInParent ) {
 		var config = configOrContentItem,
-			isItem = configOrContentItem instanceof lm.items.AbstractContentItem,
+			isItem = configOrContentItem instanceof items.AbstractContentItem,
 			self = this,
 			windowLeft,
 			windowTop,
@@ -414,7 +418,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 
 		if( isItem ) {
 			config = this.toConfig( configOrContentItem ).content;
-			parentId = lm.utils.getUniqueId();
+			parentId = utils.getUniqueId();
 
 			/**
 			 * If the item is the only component within a stack or for some
@@ -433,7 +437,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 
 			parent.addId( parentId );
 			if( isNaN( indexInParent ) ) {
-				indexInParent = lm.utils.indexOf( child, parent.contentItems );
+				indexInParent = parent.contentItems.indexOf(child);
 			}
 		} else {
 			if( !( config instanceof Array ) ) {
@@ -468,7 +472,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			configOrContentItem.remove();
 		}
 
-		browserPopout = new lm.controls.BrowserPopout( config, dimensions, parentId, indexInParent, this );
+		browserPopout = new BrowserPopout( config, dimensions, parentId, indexInParent, this );
 
 		browserPopout.on( 'initialised', function() {
 			self.emit( 'windowOpened', browserPopout );
@@ -481,7 +485,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		this.openPopouts.push( browserPopout );
 
 		return browserPopout;
-	},
+	}
 
 	/**
 	 * Attaches DragListener to any given DOM element
@@ -493,26 +497,26 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	createDragSource: function( element, itemConfig ) {
+	createDragSource( element, itemConfig ) {
 		this.config.settings.constrainDragToContainer = false;
-		var dragSource = new lm.controls.DragSource( $( element ), itemConfig, this );
+		var dragSource = new DragSource( $( element ), itemConfig, this );
 		this._dragSources.push( dragSource );
 
 		return dragSource;
-	},
+	}
 
 	/**
 	 * Programmatically selects an item. This deselects
 	 * the currently selected item, selects the specified item
 	 * and emits a selectionChanged event
 	 *
-	 * @param   {lm.item.AbstractContentItem} item#
+	 * @param   {AbstractContentItem} item#
 	 * @param   {[Boolean]} _$silent Wheather to notify the item of its selection
 	 * @event    selectionChanged
 	 *
-	 * @returns {VOID}
+	 * @returns {void}
 	 */
-	selectItem: function( item, _$silent ) {
+	selectItem( item, _$silent ) {
 
 		if( this.config.settings.selectionEnabled !== true ) {
 			throw new Error( 'Please set selectionEnabled to true to use this feature' );
@@ -533,12 +537,12 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		this.selectedItem = item;
 
 		this.emit( 'selectionChanged', item );
-	},
+	}
 
 	/*************************
 	 * PACKAGE PRIVATE
 	 *************************/
-	_$maximiseItem: function( contentItem ) {
+	_$maximiseItem( contentItem ) {
 		if( this._maximisedItem !== null ) {
 			this._$minimiseItem( this._maximisedItem );
 		}
@@ -552,9 +556,9 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		contentItem.callDownwards( 'setSize' );
 		this._maximisedItem.emit( 'maximised' );
 		this.emit( 'stateChanged' );
-	},
+	}
 
-	_$minimiseItem: function( contentItem ) {
+	_$minimiseItem( contentItem ) {
 		contentItem.element.removeClass( 'lm_maximised' );
 		contentItem.removeId( '__glMaximised' );
 		this._maximisePlaceholder.after( contentItem.element );
@@ -563,7 +567,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		this._maximisedItem = null;
 		contentItem.emit( 'minimised' );
 		this.emit( 'stateChanged' );
-	},
+	}
 
 	/**
 	 * This method is used to get around sandboxed iframe restrictions.
@@ -579,13 +583,13 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_$closeWindow: function() {
+	_$closeWindow() {
 		window.setTimeout( function() {
 			window.close();
 		}, 1 );
-	},
+	}
 
-	_$getArea: function( x, y ) {
+	_$getArea( x, y ) {
 		var i, area, smallestSurface = Infinity, mathingArea = null;
 
 		for( i = 0; i < this._itemAreas.length; i++ ) {
@@ -604,9 +608,9 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		return mathingArea;
-	},
+	}
 
-	_$createRootItemAreas: function() {
+	_$createRootItemAreas() {
 		var areaSize = 50;
 		var sides = { y2: 0, x2: 0, y1: 'y2', x1: 'x2' };
 		for( var side in sides ) {
@@ -619,9 +623,9 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			area.surface = ( area.x2 - area.x1 ) * ( area.y2 - area.y1 );
 			this._itemAreas.push( area );
 		}
-	},
+	}
 
-	_$calculateItemAreas: function() {
+	_$calculateItemAreas() {
 		var i, area, allContentItems = this._getAllContentItems();
 		this._itemAreas = [];
 
@@ -653,13 +657,13 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			} else {
 				this._itemAreas.push( area );
 				var header = {};
-				lm.utils.copy( header, area );
-				lm.utils.copy( header, area.contentItem._contentAreaDimensions.header.highlightArea );
+				utils.copy( header, area );
+				utils.copy( header, area.contentItem._contentAreaDimensions.header.highlightArea );
 				header.surface = ( header.x2 - header.x1 ) * ( header.y2 - header.y1 );
 				this._itemAreas.push( header );
 			}
 		}
-	},
+	}
 
 	/**
 	 * Takes a contentItem or a configuration and optionally a parent
@@ -668,21 +672,21 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @packagePrivate
 	 *
-	 * @param   {lm.items.AbtractContentItem|Object|Function} contentItemOrConfig
-	 * @param   {lm.items.AbtractContentItem} parent Only necessary when passing in config
+	 * @param   {items.AbtractContentItem|Object|Function} contentItemOrConfig
+	 * @param   {items.AbtractContentItem} parent Only necessary when passing in config
 	 *
-	 * @returns {lm.items.AbtractContentItem}
+	 * @returns {items.AbtractContentItem}
 	 */
-	_$normalizeContentItem: function( contentItemOrConfig, parent ) {
+	_$normalizeContentItem( contentItemOrConfig, parent ) {
 		if( !contentItemOrConfig ) {
 			throw new Error( 'No content item defined' );
 		}
 
-		if( lm.utils.isFunction( contentItemOrConfig ) ) {
+		if( typeof contentItemOrConfig === 'function') {
 			contentItemOrConfig = contentItemOrConfig();
 		}
 
-		if( contentItemOrConfig instanceof lm.items.AbstractContentItem ) {
+		if( contentItemOrConfig instanceof items.AbstractContentItem ) {
 			return contentItemOrConfig;
 		}
 
@@ -693,7 +697,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		} else {
 			throw new Error( 'Invalid contentItem' );
 		}
-	},
+	}
 
 	/**
 	 * Iterates through the array of open popout windows and removes the ones
@@ -704,7 +708,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_$reconcilePopoutWindows: function() {
+	_$reconcilePopoutWindows() {
 		var openPopouts = [], i;
 
 		for( i = 0; i < this.openPopouts.length; i++ ) {
@@ -720,7 +724,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			this.openPopouts = openPopouts;
 		}
 
-	},
+	}
 
 	/***************************
 	 * PRIVATE
@@ -733,7 +737,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_getAllContentItems: function() {
+	_getAllContentItems() {
 		var allContentItems = [];
 
 		var addChildren = function( contentItem ) {
@@ -749,7 +753,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		addChildren( this.root );
 
 		return allContentItems;
-	},
+	}
 
 	/**
 	 * Binds to DOM/BOM events on init
@@ -758,12 +762,12 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_bindEvents: function() {
+	_bindEvents() {
 		if( this._isFullPage ) {
 			$( window ).resize( this._resizeFunction );
 		}
 		$( window ).on( 'unload beforeunload', this._unloadFunction );
-	},
+	}
 
 	/**
 	 * Debounces resize events
@@ -772,10 +776,10 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onResize: function() {
+	_onResize() {
 		clearTimeout( this._resizeTimeoutId );
-		this._resizeTimeoutId = setTimeout( lm.utils.fnBind( this.updateSize, this ), 100 );
-	},
+		this._resizeTimeoutId = setTimeout(this.updateSize.bind(this), 100 );
+	}
 
 	/**
 	 * Extends the default config with the user specific settings and applies
@@ -786,18 +790,18 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 * @static
 	 * @returns {Object} config
 	 */
-	_createConfig: function( config ) {
-		var windowConfigKey = lm.utils.getQueryStringParam( 'gl-window' );
+	_createConfig( config ) {
+		var windowConfigKey = utils.getQueryStringParam( 'gl-window' );
 
 		if( windowConfigKey ) {
 			this.isSubWindow = true;
 			config = localStorage.getItem( windowConfigKey );
 			config = JSON.parse( config );
-			config = ( new lm.utils.ConfigMinifier() ).unminifyConfig( config );
+			config = new utils.ConfigMinifier().unminifyConfig( config );
 			localStorage.removeItem( windowConfigKey );
 		}
 
-		config = $.extend( true, {}, lm.config.defaultConfig, config );
+		config = Object.assign({}, defaultConfig, config);
 
 		var nextNode = function( node ) {
 			for( var key in node ) {
@@ -818,7 +822,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		return config;
-	},
+	}
 
 	/**
 	 * This is executed when GoldenLayout detects that it is run
@@ -828,17 +832,17 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_adjustToWindowMode: function() {
+	_adjustToWindowMode() {
 		var popInButton = $( '<div class="lm_popin" title="' + this.config.labels.popin + '">' +
 			'<div class="lm_icon"></div>' +
 			'<div class="lm_bg"></div>' +
 			'</div>' );
 
-		popInButton.click( lm.utils.fnBind( function() {
+		popInButton.click(() => {
 			this.emit( 'popIn' );
-		}, this ) );
+		});
 
-		document.title = lm.utils.stripTags( this.config.content[ 0 ].title );
+		document.title = utils.stripTags( this.config.content[ 0 ].title );
 
 		$( 'head' ).append( $( 'body link, body style, template, .gl_keep' ) );
 
@@ -859,7 +863,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		 * it
 		 */
 		window.__glInstance = this;
-	},
+	}
 
 	/**
 	 * Creates Subwindows (if there are any). Throws an error
@@ -867,7 +871,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_createSubWindows: function() {
+	_createSubWindows() {
 		var i, popout;
 
 		for( i = 0; i < this.config.openPopouts.length; i++ ) {
@@ -880,7 +884,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 				popout.indexInParent
 			);
 		}
-	},
+	}
 
 	/**
 	 * Determines what element the layout will be created in
@@ -889,7 +893,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_setContainer: function() {
+	_setContainer() {
 		var container = $( this.container || 'body' );
 
 		if( container.length === 0 ) {
@@ -912,7 +916,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		this.container = container;
-	},
+	}
 
 	/**
 	 * Kicks of the initial, recursive creation chain
@@ -921,7 +925,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_create: function( config ) {
+	_create( config ) {
 		var errorMsg;
 
 		if( !( config.content instanceof Array ) ) {
@@ -931,21 +935,21 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 				errorMsg = 'Configuration parameter \'content\' must be an array';
 			}
 
-			throw new lm.errors.ConfigurationError( errorMsg, config );
+			throw new ConfigurationError( errorMsg, config );
 		}
 
 		if( config.content.length > 1 ) {
 			errorMsg = 'Top level content can\'t contain more then one element.';
-			throw new lm.errors.ConfigurationError( errorMsg, config );
+			throw new ConfigurationError( errorMsg, config );
 		}
 
-		this.root = new lm.items.Root( this, { content: config.content }, this.container );
+		this.root = new items.Root( this, { content: config.content }, this.container );
 		this.root.callDownwards( '_$init' );
 
 		if( config.maximisedItemId === '__glMaximised' ) {
 			this.root.getItemsById( config.maximisedItemId )[ 0 ].toggleMaximise();
 		}
-	},
+	}
 
 	/**
 	 * Called when the window is closed or the user navigates away
@@ -953,20 +957,20 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onUnload: function() {
+	_onUnload() {
 		if( this.config.settings.closePopoutsOnUnload === true ) {
 			for( var i = 0; i < this.openPopouts.length; i++ ) {
 				this.openPopouts[ i ].close();
 			}
 		}
-	},
+	}
 
 	/**
 	 * Adjusts the number of columns to be lower to fit the screen and still maintain minItemWidth.
 	 *
 	 * @returns {void}
 	 */
-	_adjustColumnsResponsive: function() {
+	_adjustColumnsResponsive() {
 
 		// If there is no min width set, or not content items, do nothing.
 		if( !this._useResponsiveLayout() || this._updatingColumnsResponsive || !this.config.dimensions || !this.config.dimensions.minItemWidth || this.root.contentItems.length === 0 || !this.root.contentItems[ 0 ].isRow ) {
@@ -1005,16 +1009,16 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 		}
 
 		this._updatingColumnsResponsive = false;
-	},
+	}
 
 	/**
 	 * Determines if responsive layout should be used.
 	 *
 	 * @returns {bool} - True if responsive layout should be used; otherwise false.
 	 */
-	_useResponsiveLayout: function() {
+	_useResponsiveLayout() {
 		return this.config.settings && ( this.config.settings.responsiveMode == 'always' || ( this.config.settings.responsiveMode == 'onload' && this._firstLoad ) );
-	},
+	}
 
 	/**
 	 * Adds all children of a node to another container recursively.
@@ -1022,7 +1026,7 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 * @param {object} node - Node to search for content items.
 	 * @returns {void}
 	 */
-	_addChildContentItemsToContainer: function( container, node ) {
+	_addChildContentItemsToContainer( container, node ) {
 		if( node.type === 'stack' ) {
 			node.contentItems.forEach( function( item ) {
 				container.addChild( item );
@@ -1030,22 +1034,22 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 			} );
 		}
 		else {
-			node.contentItems.forEach( lm.utils.fnBind( function( item ) {
+			node.contentItems.forEach(item => {
 				this._addChildContentItemsToContainer( container, item );
-			}, this ) );
+			});
 		}
-	},
+	}
 
 	/**
 	 * Finds all the stack containers.
 	 * @returns {array} - The found stack containers.
 	 */
-	_findAllStackContainers: function() {
+	_findAllStackContainers() {
 		var stackContainers = [];
 		this._findAllStackContainersRecursive( stackContainers, this.root );
 
 		return stackContainers;
-	},
+	}
 
 	/**
 	 * Finds all the stack containers.
@@ -1055,53 +1059,16 @@ lm.utils.copy( lm.LayoutManager.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_findAllStackContainersRecursive: function( stackContainers, node ) {
-		node.contentItems.forEach( lm.utils.fnBind( function( item ) {
+	_findAllStackContainersRecursive( stackContainers, node ) {
+		node.contentItems.forEach(item => {
 			if( item.type == 'stack' ) {
 				stackContainers.push( item );
 			}
 			else if( !item.isComponent ) {
 				this._findAllStackContainersRecursive( stackContainers, item );
 			}
-		}, this ) );
+		});
 	}
-} );
-
-// Create our dependency variables inside the current scope
-if( typeof $ === 'undefined' ) {
-	var $;
 }
 
-if( typeof React === 'undefined' ) {
-	var React;
-}
-
-if( typeof ReactDOM === 'undefined' ) {
-	var ReactDOM;
-}
-
-/**
- * Expose the Layoutmanager as the single entrypoint using UMD
- */
-(function() {
-	/* global define */
-	if( typeof exports === 'object' ) {
-		if ( typeof require === 'function' ) {
-			$ = require( 'jquery' );
-			try {
-				// Webpack optional require.
-				// Will warn rather than error if react and react-dom aren't found.
-				React = require( 'react' );
-				ReactDOM = require( 'react-dom' );
-			} catch ( e ) {}
-		}
-		module.exports = lm.LayoutManager;
-	} else if( typeof define === 'function' && define.amd ) {
-		define( [ 'jquery' ], function( jquery ) {
-			$ = jquery;
-			return lm.LayoutManager;
-		} ); // jshint ignore:line
-	} else {
-		window.GoldenLayout = lm.LayoutManager;
-	}
-})();
+GoldenLayout.utils = utils;

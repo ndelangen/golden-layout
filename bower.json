@@ -6,7 +6,7 @@
     "deepstreamHub GmbH"
   ],
   "description": "a multi-screen/multi-window javascript layout manager",
-  "main": "./dist/goldenlayout.min.js",
+  "main": "./dist/goldenlayout.js",
   "moduleType": [
     "amd",
     "globals"

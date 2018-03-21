@@ -1,4 +1,4 @@
-lm.config.defaultConfig = {
+export default {
 	openPopouts: [],
 	settings: {
 		hasHeaders: true,

@@ -1,22 +1,26 @@
-lm.controls.Splitter = function( isVertical, size, grabSize ) {
-	this._isVertical = isVertical;
-	this._size = size;
-	this._grabSize = grabSize < size ? size : grabSize;
+import DragListener from '../utils/DragListener';
 
-	this.element = this._createElement();
-	this._dragListener = new lm.utils.DragListener( this.element );
-};
+import $ from 'jquery';
 
-lm.utils.copy( lm.controls.Splitter.prototype, {
-	on: function( event, callback, context ) {
+export default class Splitter {
+    constructor( isVertical, size, grabSize ) {
+    	this._isVertical = isVertical;
+    	this._size = size;
+    	this._grabSize = grabSize < size ? size : grabSize;
+
+    	this.element = this._createElement();
+    	this._dragListener = new DragListener( this.element );
+    }
+
+	on( event, callback, context ) {
 		this._dragListener.on( event, callback, context );
-	},
+	}
 
-	_$destroy: function() {
+	_$destroy() {
 		this.element.remove();
-	},
+	}
 
-	_createElement: function() {
+	_createElement() {
 		var dragHandle = $( '<div class="lm_drag_handle"></div>' );
 		var element    = $( '<div class="lm_splitter"></div>' );
 		element.append(dragHandle);
@@ -38,4 +42,4 @@ lm.utils.copy( lm.controls.Splitter.prototype, {
 
 		return element;
 	}
-} );
+}

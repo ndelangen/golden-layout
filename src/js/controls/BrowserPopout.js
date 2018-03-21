@@ -1,3 +1,7 @@
+import EventEmitter from '../utils/EventEmitter';
+import ConfigMinifier from '../utils/ConfigMinifier';
+import * as utils from '../utils/utils';
+
 /**
  * Pops a content item out into a new browser window.
  * This is achieved by
@@ -12,29 +16,30 @@
  * @param {Object} dimensions A map with width, height, top and left
  * @param {String} parentId The id of the element the item will be appended to on popIn
  * @param {Number} indexInParent The position of this element within its parent
- * @param {lm.LayoutManager} layoutManager
+ * @param {LayoutManager} layoutManager
  */
-lm.controls.BrowserPopout = function( config, dimensions, parentId, indexInParent, layoutManager ) {
-	lm.utils.EventEmitter.call( this );
-	this.isInitialised = false;
+export default class BrowserPopout extends EventEmitter {
+    constructor( config, dimensions, parentId, indexInParent, layoutManager ) {
+    	super();
 
-	this._config = config;
-	this._dimensions = dimensions;
-	this._parentId = parentId;
-	this._indexInParent = indexInParent;
-	this._layoutManager = layoutManager;
-	this._popoutWindow = null;
-	this._id = null;
-	this._createWindow();
-};
+    	this.isInitialised = false;
 
-lm.utils.copy( lm.controls.BrowserPopout.prototype, {
+    	this._config = config;
+    	this._dimensions = dimensions;
+    	this._parentId = parentId;
+    	this._indexInParent = indexInParent;
+    	this._layoutManager = layoutManager;
+    	this._popoutWindow = null;
+    	this._id = null;
+    	this._createWindow();
+    };
 
-	toConfig: function() {
+	toConfig() {
 		if( this.isInitialised === false ) {
 			throw new Error( 'Can\'t create config, layout not yet initialised' );
 			return;
 		}
+
 		return {
 			dimensions: {
 				width: this.getGlInstance().width,
@@ -46,17 +51,17 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 			parentId: this._parentId,
 			indexInParent: this._indexInParent
 		};
-	},
+	}
 
-	getGlInstance: function() {
+	getGlInstance() {
 		return this._popoutWindow.__glInstance;
-	},
+	}
 
-	getWindow: function() {
+	getWindow() {
 		return this._popoutWindow;
-	},
+	}
 
-	close: function() {
+	close() {
 		if( this.getGlInstance() ) {
 			this.getGlInstance()._$closeWindow();
 		} else {
@@ -65,13 +70,13 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 			} catch( e ) {
 			}
 		}
-	},
+	}
 
 	/**
 	 * Returns the popped out item to its original position. If the original
 	 * parent isn't available anymore it falls back to the layout's topmost element
 	 */
-	popIn: function() {
+	popIn() {
 		var childConfig,
 			parentItem,
 			index = this._indexInParent;
@@ -106,7 +111,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 
 		parentItem.addChild( childConfig, this._indexInParent );
 		this.close();
-	},
+	}
 
 	/**
 	 * Creates the URL and window parameter
@@ -116,7 +121,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_createWindow: function() {
+	_createWindow() {
 		var checkReadyInterval,
 			url = this._createUrl(),
 
@@ -157,8 +162,8 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 		}
 
 		$( this._popoutWindow )
-			.on( 'load', lm.utils.fnBind( this._positionWindow, this ) )
-			.on( 'unload beforeunload', lm.utils.fnBind( this._onClose, this ) );
+			.on( 'load', this._positionWindow.bind(this) )
+			.on( 'unload beforeunload', this._onClose.bind(this));
 
 		/**
 		 * Polling the childwindow to find out if GoldenLayout has been initialised
@@ -166,13 +171,13 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 		 * window or raising an event on the window object - both would introduce knowledge
 		 * about the parent to the child window which we'd rather avoid
 		 */
-		checkReadyInterval = setInterval( lm.utils.fnBind( function() {
+		checkReadyInterval = setInterval(() => {
 			if( this._popoutWindow.__glInstance && this._popoutWindow.__glInstance.isInitialised ) {
 				this._onInitialised();
 				clearInterval( checkReadyInterval );
 			}
-		}, this ), 10 );
-	},
+		}, 10 );
+	}
 
 	/**
 	 * Serialises a map of key:values to a window options string
@@ -181,7 +186,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {String} serialised window options
 	 */
-	_serializeWindowOptions: function( windowOptions ) {
+	_serializeWindowOptions( windowOptions ) {
 		var windowOptionsString = [], key;
 
 		for( key in windowOptions ) {
@@ -189,7 +194,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 		}
 
 		return windowOptionsString.join( ',' );
-	},
+	}
 
 	/**
 	 * Creates the URL for the new window, including the
@@ -197,12 +202,12 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {String} URL
 	 */
-	_createUrl: function() {
+	_createUrl() {
 		var config = { content: this._config },
-			storageKey = 'gl-window-config-' + lm.utils.getUniqueId(),
+			storageKey = 'gl-window-config-' + utils.getUniqueId(),
 			urlParts;
 
-		config = ( new lm.utils.ConfigMinifier() ).minifyConfig( config );
+		config = new ConfigMinifier().minifyConfig( config );
 
 		try {
 			localStorage.setItem( storageKey, JSON.stringify( config ) );
@@ -220,7 +225,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 		} else {
 			return document.location.href + '&gl-window=' + storageKey;
 		}
-	},
+	}
 
 	/**
 	 * Move the newly created window roughly to
@@ -230,10 +235,10 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_positionWindow: function() {
+	_positionWindow() {
 		this._popoutWindow.moveTo( this._dimensions.left, this._dimensions.top );
 		this._popoutWindow.focus();
-	},
+	}
 
 	/**
 	 * Callback when the new window is opened and the GoldenLayout instance
@@ -241,11 +246,11 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onInitialised: function() {
+	_onInitialised() {
 		this.isInitialised = true;
 		this.getGlInstance().on( 'popIn', this.popIn, this );
 		this.emit( 'initialised' );
-	},
+	}
 
 	/**
 	 * Invoked 50ms after the window unload event
@@ -254,7 +259,7 @@ lm.utils.copy( lm.controls.BrowserPopout.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onClose: function() {
-		setTimeout( lm.utils.fnBind( this.emit, this, [ 'closed' ] ), 50 );
+	_onClose() {
+		setTimeout(this.emit.bind(this, 'closed'), 50);
 	}
-} );
+}

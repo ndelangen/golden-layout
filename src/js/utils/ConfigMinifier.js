@@ -5,64 +5,64 @@
  *
  * @constructor
  */
-lm.utils.ConfigMinifier = function() {
-	this._keys = [
-		'settings',
-		'hasHeaders',
-		'constrainDragToContainer',
-		'selectionEnabled',
-		'dimensions',
-		'borderWidth',
-		'minItemHeight',
-		'minItemWidth',
-		'headerHeight',
-		'dragProxyWidth',
-		'dragProxyHeight',
-		'labels',
-		'close',
-		'maximise',
-		'minimise',
-		'popout',
-		'content',
-		'componentName',
-		'componentState',
-		'id',
-		'width',
-		'type',
-		'height',
-		'isClosable',
-		'title',
-		'popoutWholeStack',
-		'openPopouts',
-		'parentId',
-		'activeItemIndex',
-		'reorderEnabled',
-		'borderGrabWidth',
+export default class ConfigMinifier {
+    constructor() {
+    	this._keys = [
+    		'settings',
+    		'hasHeaders',
+    		'constrainDragToContainer',
+    		'selectionEnabled',
+    		'dimensions',
+    		'borderWidth',
+    		'minItemHeight',
+    		'minItemWidth',
+    		'headerHeight',
+    		'dragProxyWidth',
+    		'dragProxyHeight',
+    		'labels',
+    		'close',
+    		'maximise',
+    		'minimise',
+    		'popout',
+    		'content',
+    		'componentName',
+    		'componentState',
+    		'id',
+    		'width',
+    		'type',
+    		'height',
+    		'isClosable',
+    		'title',
+    		'popoutWholeStack',
+    		'openPopouts',
+    		'parentId',
+    		'activeItemIndex',
+    		'reorderEnabled',
+    		'borderGrabWidth',
 
 
 
 
-		//Maximum 36 entries, do not cross this line!
-	];
-	if( this._keys.length > 36 ) {
-		throw new Error( 'Too many keys in config minifier map' );
-	}
+    		//Maximum 36 entries, do not cross this line!
+    	];
 
-	this._values = [
-		true,
-		false,
-		'row',
-		'column',
-		'stack',
-		'component',
-		'close',
-		'maximise',
-		'minimise',
-		'open in new window'
-	];
-};
+    	if (this._keys.length > 36) {
+    		throw new Error( 'Too many keys in config minifier map' );
+    	}
 
-lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
+    	this._values = [
+    		true,
+    		false,
+    		'row',
+    		'column',
+    		'stack',
+    		'component',
+    		'close',
+    		'maximise',
+    		'minimise',
+    		'open in new window'
+    	];
+    }
 
 	/**
 	 * Takes a GoldenLayout configuration object and
@@ -73,11 +73,11 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 	 *
 	 * @returns {Object} minified config
 	 */
-	minifyConfig: function( config ) {
+	minifyConfig(config) {
 		var min = {};
 		this._nextLevel( config, min, '_min' );
 		return min;
-	},
+	}
 
 	/**
 	 * Takes a configuration Object that was previously minified
@@ -87,11 +87,11 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 	 *
 	 * @returns {Object} the original configuration
 	 */
-	unminifyConfig: function( minifiedConfig ) {
+	unminifyConfig(minifiedConfig) {
 		var orig = {};
-		this._nextLevel( minifiedConfig, orig, '_max' );
+		this._nextLevel(minifiedConfig, orig, '_max' );
 		return orig;
-	},
+	}
 
 	/**
 	 * Recursive function, called for every level of the config structure
@@ -102,43 +102,43 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_nextLevel: function( from, to, translationFn ) {
+	_nextLevel(from, to, translationFn) {
 		var key, minKey;
 
-		for( key in from ) {
+		for(key in from) {
 
 			/**
 			 * For in returns array indices as keys, so let's cast them to numbers
 			 */
-			if( from instanceof Array ) key = parseInt( key, 10 );
+			if (from instanceof Array ) key = parseInt( key, 10 );
 
 			/**
 			 * In case something has extended Object prototypes
 			 */
-			if( !from.hasOwnProperty( key ) ) continue;
+			if (!from.hasOwnProperty( key ) ) continue;
 
 			/**
 			 * Translate the key to a one letter substitute
 			 */
-			minKey = this[ translationFn ]( key, this._keys );
+			minKey = this[translationFn]( key, this._keys );
 
 			/**
 			 * For Arrays and Objects, create a new Array/Object
 			 * on the minified object and recurse into it
 			 */
-			if( typeof from[ key ] === 'object' ) {
-				to[ minKey ] = from[ key ] instanceof Array ? [] : {};
-				this._nextLevel( from[ key ], to[ minKey ], translationFn );
+			if (typeof from[key] === 'object') {
+				to[minKey] = from[key] instanceof Array ? [] : {};
+				this._nextLevel( from[key], to[minKey], translationFn );
 
 				/**
 				 * For primitive values (Strings, Numbers, Boolean etc.)
 				 * minify the value
 				 */
 			} else {
-				to[ minKey ] = this[ translationFn ]( from[ key ], this._values );
+				to[minKey] = this[translationFn]( from[key], this._values );
 			}
 		}
-	},
+	}
 
 	/**
 	 * Minifies value based on a dictionary
@@ -148,21 +148,21 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 	 *
 	 * @returns {String} The minified version
 	 */
-	_min: function( value, dictionary ) {
+	_min(value, dictionary) {
 		/**
 		 * If a value actually is a single character, prefix it
 		 * with ___ to avoid mistaking it for a minification code
 		 */
-		if( typeof value === 'string' && value.length === 1 ) {
+		if (typeof value === 'string' && value.length === 1) {
 			return '___' + value;
 		}
 
-		var index = lm.utils.indexOf( value, dictionary );
+		var index = dictionary.indexOf(value);
 
 		/**
 		 * value not found in the dictionary, return it unmodified
 		 */
-		if( index === -1 ) {
+		if (index === -1) {
 			return value;
 
 			/**
@@ -171,15 +171,15 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 		} else {
 			return index.toString( 36 );
 		}
-	},
+	}
 
-	_max: function( value, dictionary ) {
+	_max(value, dictionary) {
 		/**
 		 * value is a single character. Assume that it's a translation
 		 * and return the original value from the dictionary
 		 */
-		if( typeof value === 'string' && value.length === 1 ) {
-			return dictionary[ parseInt( value, 36 ) ];
+		if (typeof value === 'string' && value.length === 1) {
+			return dictionary[parseInt( value, 36 )];
 		}
 
 		/**
@@ -187,12 +187,12 @@ lm.utils.copy( lm.utils.ConfigMinifier.prototype, {
 		 * to avoid mistaking it for a translation. Remove the prefix
 		 * and return the original character
 		 */
-		if( typeof value === 'string' && value.substr( 0, 3 ) === '___' ) {
-			return value[ 3 ];
+		if (typeof value === 'string' && value.substr( 0, 3 ) === '___') {
+			return value[3];
 		}
 		/**
 		 * value was not minified
 		 */
 		return value;
 	}
-} );
+}

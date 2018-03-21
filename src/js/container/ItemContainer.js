@@ -1,24 +1,27 @@
-lm.container.ItemContainer = function( config, parent, layoutManager ) {
-	lm.utils.EventEmitter.call( this );
+import EventEmitter from '../utils/EventEmitter';
 
-	this.width = null;
-	this.height = null;
-	this.title = config.componentName;
-	this.parent = parent;
-	this.layoutManager = layoutManager;
-	this.isHidden = false;
+import $ from 'jquery';
 
-	this._config = config;
-	this._element = $( [
-		'<div class="lm_item_container">',
-		'<div class="lm_content"></div>',
-		'</div>'
-	].join( '' ) );
+export default class ItemContainer extends EventEmitter {
+    constructor( config, parent, layoutManager ) {
+    	super();
 
-	this._contentElement = this._element.find( '.lm_content' );
-};
+    	this.width = null;
+    	this.height = null;
+    	this.title = config.componentName;
+    	this.parent = parent;
+    	this.layoutManager = layoutManager;
+    	this.isHidden = false;
 
-lm.utils.copy( lm.container.ItemContainer.prototype, {
+    	this._config = config;
+    	this._element = $( [
+    		'<div class="lm_item_container">',
+    		'<div class="lm_content"></div>',
+    		'</div>'
+    	].join( '' ) );
+
+    	this._contentElement = this._element.find( '.lm_content' );
+    }
 
 	/**
 	 * Get the inner DOM element the container's content
@@ -26,9 +29,9 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {DOM element}
 	 */
-	getElement: function() {
+	getElement() {
 		return this._contentElement;
-	},
+	}
 
 	/**
 	 * Hide the container. Notifies the containers content first
@@ -37,11 +40,11 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	hide: function() {
+	hide() {
 		this.emit( 'hide' );
 		this.isHidden = true;
 		this._element.hide();
-	},
+	}
 
 	/**
 	 * Shows a previously hidden container. Notifies the
@@ -50,7 +53,7 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	show: function() {
+	show() {
 		this.emit( 'show' );
 		this.isHidden = false;
 		this._element.show();
@@ -58,7 +61,7 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 		if( this.height != 0 || this.width != 0 ) {
 			this.emit( 'shown' );
 		}
-	},
+	}
 
 	/**
 	 * Set the size from within the container. Traverses up
@@ -73,7 +76,7 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {Boolean} resizeSuccesful
 	 */
-	setSize: function( width, height ) {
+	setSize( width, height ) {
 		var rowOrColumn = this.parent,
 			rowOrColumnChild = this,
 			totalPixel,
@@ -114,7 +117,7 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 		rowOrColumn.callDownwards( 'setSize' );
 
 		return true;
-	},
+	}
 
 	/**
 	 * Closes the container if it is closable. Can be called by
@@ -123,21 +126,21 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	close: function() {
+	close() {
 		if( this._config.isClosable ) {
 			this.emit( 'close' );
 			this.parent.close();
 		}
-	},
+	}
 
 	/**
 	 * Returns the current state object
 	 *
 	 * @returns {Object} state
 	 */
-	getState: function() {
+	getState() {
 		return this._config.componentState;
-	},
+	}
 
 	/**
 	 * Merges the provided state into the current one
@@ -146,28 +149,28 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	extendState: function( state ) {
+	extendState( state ) {
 		this.setState( $.extend( true, this.getState(), state ) );
-	},
+	}
 
 	/**
 	 * Notifies the layout manager of a stateupdate
 	 *
 	 * @param {serialisable} state
 	 */
-	setState: function( state ) {
+	setState( state ) {
 		this._config.componentState = state;
 		this.parent.emitBubblingEvent( 'stateChanged' );
-	},
+	}
 
 	/**
 	 * Set's the components title
 	 *
 	 * @param {String} title
 	 */
-	setTitle: function( title ) {
+	setTitle( title ) {
 		this.parent.setTitle( title );
-	},
+	}
 
 	/**
 	 * Set's the containers size. Called by the container's component.
@@ -179,7 +182,7 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_$setSize: function( width, height ) {
+	_$setSize( width, height ) {
 		if( width !== this.width || height !== this.height ) {
 			this.width = width;
 			this.height = height;
@@ -188,4 +191,4 @@ lm.utils.copy( lm.container.ItemContainer.prototype, {
 			this.emit( 'resize' );
 		}
 	}
-} );
+}

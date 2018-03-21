@@ -1,9 +1,11 @@
-lm.utils.BubblingEvent = function( name, origin ) {
-	this.name = name;
-	this.origin = origin;
-	this.isPropagationStopped = false;
-};
+export default class BubblingEvent {
+    constructor(name, origin) {
+    	this.name = name;
+    	this.origin = origin;
+    	this.isPropagationStopped = false;
+    }
 
-lm.utils.BubblingEvent.prototype.stopPropagation = function() {
-	this.isPropagationStopped = true;
-};
+    stopPropagation() {
+    	this.isPropagationStopped = true;
+    }
+}

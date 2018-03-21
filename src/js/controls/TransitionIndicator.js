@@ -1,55 +1,59 @@
-lm.controls.TransitionIndicator = function() {
-	this._element = $( '<div class="lm_transition_indicator"></div>' );
-	$( document.body ).append( this._element );
+import * as utils from '../utils/utils';
 
-	this._toElement = null;
-	this._fromDimensions = null;
-	this._totalAnimationDuration = 200;
-	this._animationStartTime = null;
-};
+import $ from 'jquery';
 
-lm.utils.copy( lm.controls.TransitionIndicator.prototype, {
-	destroy: function() {
+export default class TransitionIndicator {
+    constructor() {
+    	this._element = $('<div class="lm_transition_indicator"></div>');
+    	$(document.body).append(this._element);
+
+    	this._toElement = null;
+    	this._fromDimensions = null;
+    	this._totalAnimationDuration = 200;
+    	this._animationStartTime = null;
+    }
+
+	destroy() {
 		this._element.remove();
-	},
+	}
 
-	transitionElements: function( fromElement, toElement ) {
+	transitionElements(fromElement, toElement) {
 		/**
 		 * TODO - This is not quite as cool as expected. Review.
 		 */
 		return;
 		this._toElement = toElement;
-		this._animationStartTime = lm.utils.now();
-		this._fromDimensions = this._measure( fromElement );
+		this._animationStartTime = utils.now();
+		this._fromDimensions = this._measure(fromElement);
 		this._fromDimensions.opacity = 0.8;
-		this._element.show().css( this._fromDimensions );
-		lm.utils.animFrame( lm.utils.fnBind( this._nextAnimationFrame, this ) );
-	},
+		this._element.show().css(this._fromDimensions);
+		utils.animFrame(this._nextAnimationFrame.bind(this));
+	}
 
-	_nextAnimationFrame: function() {
-		var toDimensions = this._measure( this._toElement ),
-			animationProgress = ( lm.utils.now() - this._animationStartTime ) / this._totalAnimationDuration,
+	_nextAnimationFrame() {
+		var toDimensions = this._measure(this._toElement),
+			animationProgress = (utils.now() - this._animationStartTime) / this._totalAnimationDuration,
 			currentFrameStyles = {},
 			cssProperty;
 
-		if( animationProgress >= 1 ) {
+		if(animationProgress >= 1) {
 			this._element.hide();
 			return;
 		}
 
 		toDimensions.opacity = 0;
 
-		for( cssProperty in this._fromDimensions ) {
-			currentFrameStyles[ cssProperty ] = this._fromDimensions[ cssProperty ] +
-				( toDimensions[ cssProperty ] - this._fromDimensions[ cssProperty ] ) *
+		for(cssProperty in this._fromDimensions) {
+			currentFrameStyles[cssProperty] = this._fromDimensions[cssProperty] +
+				(toDimensions[cssProperty] - this._fromDimensions[cssProperty]) *
 				animationProgress;
 		}
 
-		this._element.css( currentFrameStyles );
-		lm.utils.animFrame( lm.utils.fnBind( this._nextAnimationFrame, this ) );
-	},
+		this._element.css(currentFrameStyles);
+		utils.animFrame(this._nextAnimationFrame.bind(this));
+	}
 
-	_measure: function( element ) {
+	_measure(element) {
 		var offset = element.offset();
 
 		return {
@@ -59,4 +63,4 @@ lm.utils.copy( lm.controls.TransitionIndicator.prototype, {
 			height: element.outerHeight()
 		};
 	}
-} );
+}

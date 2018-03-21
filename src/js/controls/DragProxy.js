@@ -1,76 +1,68 @@
+import EventEmitter from '../utils/EventEmitter';
+import * as utils from '../utils/utils';
+
+import $ from 'jquery';
+
 /**
  * This class creates a temporary container
  * for the component whilst it is being dragged
  * and handles drag events
  *
- * @constructor
  * @private
- *
- * @param {Number} x              The initial x position
- * @param {Number} y              The initial y position
- * @param {lm.utils.DragListener} dragListener
- * @param {lm.LayoutManager} layoutManager
- * @param {lm.item.AbstractContentItem} contentItem
- * @param {lm.item.AbstractContentItem} originalParent
  */
-lm.controls.DragProxy = function( x, y, dragListener, layoutManager, contentItem, originalParent ) {
+export default class DragProxy extends EventEmitter {
+    /**
+     * @param {Number} x              The initial x position
+     * @param {Number} y              The initial y position
+     * @param {DragListener} dragListener
+     * @param {LayoutManager} layoutManager
+     * @param {AbstractContentItem} contentItem
+     * @param {AbstractContentItem} originalParent
+     */
+    constructor( x, y, dragListener, layoutManager, contentItem, originalParent ) {
+    	super()
 
-	lm.utils.EventEmitter.call( this );
+    	this._dragListener = dragListener;
+    	this._layoutManager = layoutManager;
+    	this._contentItem = contentItem;
+    	this._originalParent = originalParent;
 
-	this._dragListener = dragListener;
-	this._layoutManager = layoutManager;
-	this._contentItem = contentItem;
-	this._originalParent = originalParent;
+    	this._area = null;
+    	this._lastValidArea = null;
 
-	this._area = null;
-	this._lastValidArea = null;
+    	this._dragListener.on( 'drag', this._onDrag, this );
+    	this._dragListener.on( 'dragStop', this._onDrop, this );
 
-	this._dragListener.on( 'drag', this._onDrag, this );
-	this._dragListener.on( 'dragStop', this._onDrop, this );
+    	this.element = $(DragProxy._template);
+    	if( originalParent && originalParent._side ) {
+    		this._sided = originalParent._sided;
+    		this.element.addClass( 'lm_' + originalParent._side );
+    		if( [ 'right', 'bottom' ].indexOf( originalParent._side ) >= 0 )
+    			this.element.find( '.lm_content' ).after( this.element.find( '.lm_header' ) );
+    	}
+    	this.element.css( { left: x, top: y } );
+    	this.element.find( '.lm_tab' ).attr( 'title', utils.stripTags( this._contentItem.config.title ) );
+    	this.element.find( '.lm_title' ).html( this._contentItem.config.title );
+    	this.childElementContainer = this.element.find( '.lm_content' );
+    	this.childElementContainer.append( contentItem.element );
 
-	this.element = $( lm.controls.DragProxy._template );
-	if( originalParent && originalParent._side ) {
-		this._sided = originalParent._sided;
-		this.element.addClass( 'lm_' + originalParent._side );
-		if( [ 'right', 'bottom' ].indexOf( originalParent._side ) >= 0 )
-			this.element.find( '.lm_content' ).after( this.element.find( '.lm_header' ) );
-	}
-	this.element.css( { left: x, top: y } );
-	this.element.find( '.lm_tab' ).attr( 'title', lm.utils.stripTags( this._contentItem.config.title ) );
-	this.element.find( '.lm_title' ).html( this._contentItem.config.title );
-	this.childElementContainer = this.element.find( '.lm_content' );
-	this.childElementContainer.append( contentItem.element );
+    	this._updateTree();
+    	this._layoutManager._$calculateItemAreas();
+    	this._setDimensions();
 
-	this._updateTree();
-	this._layoutManager._$calculateItemAreas();
-	this._setDimensions();
+    	$( document.body ).append( this.element );
 
-	$( document.body ).append( this.element );
+    	var offset = this._layoutManager.container.offset();
 
-	var offset = this._layoutManager.container.offset();
+    	this._minX = offset.left;
+    	this._minY = offset.top;
+    	this._maxX = this._layoutManager.container.width() + this._minX;
+    	this._maxY = this._layoutManager.container.height() + this._minY;
+    	this._width = this.element.width();
+    	this._height = this.element.height();
 
-	this._minX = offset.left;
-	this._minY = offset.top;
-	this._maxX = this._layoutManager.container.width() + this._minX;
-	this._maxY = this._layoutManager.container.height() + this._minY;
-	this._width = this.element.width();
-	this._height = this.element.height();
-
-	this._setDropPosition( x, y );
-};
-
-lm.controls.DragProxy._template = '<div class="lm_dragProxy">' +
-	'<div class="lm_header">' +
-	'<ul class="lm_tabs">' +
-	'<li class="lm_tab lm_active"><i class="lm_left"></i>' +
-	'<span class="lm_title"></span>' +
-	'<i class="lm_right"></i></li>' +
-	'</ul>' +
-	'</div>' +
-	'<div class="lm_content"></div>' +
-	'</div>';
-
-lm.utils.copy( lm.controls.DragProxy.prototype, {
+    	this._setDropPosition( x, y );
+    }
 
 	/**
 	 * Callback on every mouseMove event during a drag. Determines if the drag is
@@ -85,7 +77,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onDrag: function( offsetX, offsetY, event ) {
+	_onDrag( offsetX, offsetY, event ) {
 
 		event = event.originalEvent && event.originalEvent.touches ? event.originalEvent.touches[ 0 ] : event;
 
@@ -98,7 +90,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 		}
 
 		this._setDropPosition( x, y );
-	},
+	}
 
 	/**
 	 * Sets the target position, highlighting the appropriate area
@@ -110,7 +102,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_setDropPosition: function( x, y ) {
+	_setDropPosition( x, y ) {
 		this.element.css( { left: x, top: y } );
 		this._area = this._layoutManager._$getArea( x, y );
 
@@ -118,7 +110,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 			this._lastValidArea = this._area;
 			this._area.contentItem._$highlightDropZone( x, y, this._area );
 		}
-	},
+	}
 
 	/**
 	 * Callback when the drag has finished. Determines the drop area
@@ -128,7 +120,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_onDrop: function() {
+	_onDrop() {
 		this._layoutManager.dropTargetIndicator.hide();
 
 		/*
@@ -164,7 +156,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 		this.element.remove();
 
 		this._layoutManager.emit( 'itemDropped', this._contentItem );
-	},
+	}
 
 	/**
 	 * Removes the item from its original position within the tree
@@ -173,7 +165,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_updateTree: function() {
+	_updateTree() {
 
 		/**
 		 * parent is null if the drag had been initiated by a external drag source
@@ -183,7 +175,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 		}
 
 		this._contentItem._$setParent( this );
-	},
+	}
 
 	/**
 	 * Updates the Drag Proxie's dimensions
@@ -192,7 +184,7 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 	 *
 	 * @returns {void}
 	 */
-	_setDimensions: function() {
+	_setDimensions() {
 		var dimensions = this._layoutManager.config.dimensions,
 			width = dimensions.dragProxyWidth,
 			height = dimensions.dragProxyHeight;
@@ -208,4 +200,15 @@ lm.utils.copy( lm.controls.DragProxy.prototype, {
 		this._contentItem.callDownwards( '_$show' );
 		this._contentItem.callDownwards( 'setSize' );
 	}
-} );
+}
+
+DragProxy._template = '<div class="lm_dragProxy">' +
+	'<div class="lm_header">' +
+	'<ul class="lm_tabs">' +
+	'<li class="lm_tab lm_active"><i class="lm_left"></i>' +
+	'<span class="lm_title"></span>' +
+	'<i class="lm_right"></i></li>' +
+	'</ul>' +
+	'</div>' +
+	'<div class="lm_content"></div>' +
+	'</div>';

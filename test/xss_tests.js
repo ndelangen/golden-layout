@@ -1,5 +1,5 @@
 describe( 'Basic XSS filtering is applied', function(){
-	var filterFn = window.GoldenLayout.__lm.utils.filterXss;
+	var filterFn = window.GoldenLayout.utils.filterXss;
 
 	it( 'escapes tags', function(){
 		var escapedString = filterFn( '>\'>"><img src=x onerror=alert(0)>' );

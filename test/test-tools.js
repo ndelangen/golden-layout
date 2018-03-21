@@ -47,14 +47,14 @@ testTools.verifyPath = function( path, layout, expect ) {
 		i;
 
 	for( i = 0; i < pathSegments.length; i++ ) {
-		
+
 		if( isNaN( pathSegments[ i ] ) ) {
 			expect( node.type ).toBe( pathSegments[ i ] );
 		} else {
 			node = node.contentItems[ parseInt( pathSegments[ i ], 10 ) ];
 
 			expect( node ).toBeDefined();
-			
+
 			if( node === undefined ) {
 				return null;
 			}
