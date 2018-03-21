@@ -1,20 +1,20 @@
 describe( 'Dynamic ids work properly', function(){
     var layout, item;
 
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'component',
                 componentName: 'testComponent'
             }]
-        });
-    });
+        }).then(l => layout = l);
+    }, 10000);
 
     it( 'finds the item', function(){
         item = layout.root.contentItems[ 0 ].contentItems[ 0 ];
         expect( item.isComponent ).toBe( true );
     });
-    
+
     it( 'has no id initially', function(){
         expect( item.config.id ).toBe( undefined );
         expect( item.hasId( 'id_1' ) ).toBe( false );

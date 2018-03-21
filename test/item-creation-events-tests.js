@@ -44,11 +44,11 @@ describe( 'emits events when items are created', function(){
     });
 
     it( 'has called listeners', function(){
-        expect( eventListener.onItemCreated.calls.length ).toBe( 6 );
-        expect( eventListener.onStackCreated.calls.length ).toBe( 2 );
-        expect( eventListener.onRowCreated.calls.length ).toBe( 1 );
-        expect( eventListener.onColumnCreated.calls.length ).toBe( 1 );
-        expect( eventListener.onComponentCreated.calls.length ).toBe( 1 );
+        expect( eventListener.onItemCreated.calls.count() ).toBe( 6 );
+        expect( eventListener.onStackCreated.calls.count() ).toBe( 2 );
+        expect( eventListener.onRowCreated.calls.count() ).toBe( 1 );
+        expect( eventListener.onColumnCreated.calls.count() ).toBe( 1 );
+        expect( eventListener.onComponentCreated.calls.count() ).toBe( 1 );
     });
 
     it( 'provided the right arguments', function(){

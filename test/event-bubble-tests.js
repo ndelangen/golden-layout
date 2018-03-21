@@ -1,9 +1,8 @@
 describe( 'content items are abled to to emit events that bubble up the tree', function(){
 
     var layout;
-
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'stack',
                 content: [{
@@ -16,8 +15,10 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
                     type: 'row'
                 }]
             }]
-        });
+        }).then(l => layout = l);
+    }, 10000);
 
+    it( 'creates a layout', function(){
         testTools.verifyPath( 'stack.0.column.0.stack.0.component', layout, expect );
         testTools.verifyPath( 'stack.1.row', layout, expect );
     });
@@ -36,7 +37,7 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
                 .on( eventName, function(){
                     invocations.push( 'component' );
                 });
-        
+
             layout.root
                 .contentItems[ 0 ]
                 .contentItems[ 0 ]
@@ -96,7 +97,7 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
             .on( eventName, function(){
                 invocations.push( 'component' );
             });
-    
+
         layout.root
             .contentItems[ 0 ]
             .contentItems[ 0 ]
@@ -116,9 +117,9 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
             .on( eventName, function(){ invocations.push( 'stackTop' ); });
 
         layout.root.on( eventName, function(){ invocations.push( 'root' ); });
-        
+
         layout.on( eventName, function(){ invocations.push( 'layout' ); });
-        
+
         layout.root.getItemsByType( 'component' )[ 0 ].emitBubblingEvent( eventName );
 
         expect( invocations.length ).toBe( 3 );

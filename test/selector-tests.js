@@ -2,8 +2,8 @@ describe( 'it is possible to select elements from the tree using selectors', fun
 
     var layout;
 
-    it( 'creates a layout with elements that have ids', function(){
-        var config = {
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [
                 {
                     type: 'column',
@@ -26,8 +26,11 @@ describe( 'it is possible to select elements from the tree using selectors', fun
                     ]
                 }
             ]
-        };
-        layout = testTools.createLayout( config );
+        }).then(l => layout = l);
+    }, 10000);
+
+
+    it( 'creates a layout with elements that have ids', function(){
         testTools.verifyPath( 'column.0.stack.0.component', layout, expect );
         testTools.verifyPath( 'column.1.column.0.column', layout, expect );
     });

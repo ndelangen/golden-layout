@@ -13,7 +13,7 @@
     "build": "rollup -c",
     "build:watch": "npm run build -- --watch",
     "test": "karma start --single-run",
-    "test:watch": "exit 1"
+    "test:watch": "karma start"
   },
   "repository": {
     "type": "git",

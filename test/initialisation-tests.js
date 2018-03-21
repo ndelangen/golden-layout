@@ -1,5 +1,4 @@
 describe( 'Can initialise the layoutmanager', function() {
-
     var myLayout;
 
     it( 'Finds the layoutmanager on the global namespace', function() {

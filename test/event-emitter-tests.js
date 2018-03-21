@@ -1,7 +1,5 @@
 describe( 'the EventEmitter works', function(){
-    var EmitterImplementor = function() {
-        lm.utils.EventEmitter.call( this );
-    };
+    class EmitterImplementor extends GoldenLayout.utils.EventEmitter {}
 
     it( 'is possible to inherit from EventEmitter', function(){
         var myObject = new EmitterImplementor();
@@ -19,7 +17,7 @@ describe( 'the EventEmitter works', function(){
         expect( myListener.callback ).not.toHaveBeenCalled();
         myObject.emit( 'someEvent', 'Good', 'Morning' );
         expect( myListener.callback ).toHaveBeenCalledWith( 'Good', 'Morning' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
     });
 
     it( 'triggers an \'all\' event', function(){
@@ -29,21 +27,21 @@ describe( 'the EventEmitter works', function(){
         spyOn( myListener, 'allCallback' );
 
         myObject.on( 'someEvent', myListener.callback );
-        myObject.on( lm.utils.EventEmitter.ALL_EVENT, myListener.allCallback );
-        
+        myObject.on( GoldenLayout.utils.EventEmitter.ALL_EVENT, myListener.allCallback );
+
 
         expect( myListener.callback ).not.toHaveBeenCalled();
         expect( myListener.allCallback ).not.toHaveBeenCalled();
         myObject.emit( 'someEvent', 'Good', 'Morning' );
         expect( myListener.callback ).toHaveBeenCalledWith( 'Good', 'Morning' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
         expect( myListener.allCallback ).toHaveBeenCalledWith( 'someEvent', 'Good', 'Morning' );
-        expect(myListener.allCallback.calls.length).toEqual(1);
+        expect(myListener.allCallback.calls.count()).toEqual(1);
 
         myObject.emit( 'someOtherEvent', 123 );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
         expect(myListener.allCallback ).toHaveBeenCalledWith( 'someOtherEvent', 123 );
-        expect(myListener.allCallback.calls.length).toEqual(2);
+        expect(myListener.allCallback.calls.count()).toEqual(2);
     });
 
     it( 'triggers sets the right context', function(){
@@ -64,12 +62,12 @@ describe( 'the EventEmitter works', function(){
         var myListener = { callback: function(){}};
         spyOn( myListener, 'callback' );
         myObject.on( 'someEvent', myListener.callback );
-        expect(myListener.callback.calls.length).toEqual(0);
+        expect(myListener.callback.calls.count()).toEqual(0);
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
         myObject.unbind( 'someEvent', myListener.callback );
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
     });
 
     it( 'unbinds all events if no context is provided', function(){
@@ -77,12 +75,12 @@ describe( 'the EventEmitter works', function(){
         var myListener = { callback: function(){}};
         spyOn( myListener, 'callback' );
         myObject.on( 'someEvent', myListener.callback );
-        expect(myListener.callback.calls.length).toEqual(0);
+        expect(myListener.callback.calls.count()).toEqual(0);
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
         myObject.unbind( 'someEvent' );
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(1);
+        expect(myListener.callback.calls.count()).toEqual(1);
     });
 
     it( 'unbinds events for a specific context only', function(){
@@ -93,15 +91,15 @@ describe( 'the EventEmitter works', function(){
         spyOn( myListener, 'callback' );
         myObject.on( 'someEvent', myListener.callback, contextA );
         myObject.on( 'someEvent', myListener.callback, contextB );
-        expect(myListener.callback.calls.length).toEqual(0);
+        expect(myListener.callback.calls.count()).toEqual(0);
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(2);
+        expect(myListener.callback.calls.count()).toEqual(2);
         myObject.unbind( 'someEvent', myListener.callback, contextA );
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(3);
+        expect(myListener.callback.calls.count()).toEqual(3);
         myObject.unbind( 'someEvent', myListener.callback, contextB );
         myObject.emit( 'someEvent' );
-        expect(myListener.callback.calls.length).toEqual(3);
+        expect(myListener.callback.calls.count()).toEqual(3);
     });
 
     it( 'throws an exception when trying to unsubscribe for a non existing method', function(){
@@ -122,10 +120,10 @@ describe( 'the EventEmitter works', function(){
             myObject.unbind( 'someEvent', myListener.callback );
         }).not.toThrow();
     });
-    
+
     it( 'throws an exception when attempting to bind a non-function', function() {
         var myObject = new EmitterImplementor();
-        
+
         expect(function(){
             myObject.on( 'someEvent', 1 );
         }).toThrow();
@@ -133,7 +131,7 @@ describe( 'the EventEmitter works', function(){
         expect(function(){
             myObject.on( 'someEvent', undefined );
         }).toThrow();
-        
+
         expect(function(){
             myObject.on( 'someEvent', {} );
         }).toThrow();

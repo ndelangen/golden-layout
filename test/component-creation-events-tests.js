@@ -36,8 +36,8 @@ describe( 'emits events when components are created', function() {
     } );
 
     it( 'has called listeners', function() {
-        expect( eventListener.show.calls.length ).toBe( 1 );
-        expect( eventListener.shown.calls.length ).toBe( 1 );
+        expect( eventListener.show.calls.count() ).toBe( 1 );
+        expect( eventListener.shown.calls.count() ).toBe( 1 );
     } );
 
     it( 'destroys the layout', function() {

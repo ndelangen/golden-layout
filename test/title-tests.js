@@ -2,8 +2,8 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
 
     var layout, itemWithTitle, itemWithoutTitle, stack;
 
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'stack',
                 content: [{
@@ -18,7 +18,10 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
                     id: 'noTitle'
                 }]
             }]
-        });
+        }).then(l => layout = l);
+    }, 10000);
+
+    it( 'creates a layout', function(){
 
         expect( layout.isInitialised ).toBe( true );
     });

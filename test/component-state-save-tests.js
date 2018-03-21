@@ -1,45 +1,39 @@
 describe( 'Sets and retrieves a component\'s state', function() {
 
-    var myLayout, myComponent;
+    var layout, myComponent;
 
-    it( 'Can create a most basic layout', function() {
-        runs(function(){
-            myLayout = new window.GoldenLayout({
+    beforeAll(function() {
+        return testTools.createLayout(
+            {
                 content: [{
                     type: 'component',
                     componentName: 'testComponent',
                     componentState: { testValue: 'initial' }
                 }]
-            });
+            },
+            (layout) => {
+                layout.registerComponent( 'testComponent', function( container, state ){
+                    this.container = container;
+                    this.state = state;
+                    myComponent = this;
+                });
+            }
+        ).then(l => layout = l);
+    }, 10000);
 
-
-            myLayout.registerComponent( 'testComponent', function( container, state ){
-                this.container = container;
-                this.state = state;
-                myComponent = this;
-            });
-
-            myLayout.init();
-        });
-        
-        waitsFor(function(){
-            return myLayout.isInitialised;
-        });
-
-        runs(function(){
-            expect( myComponent.state.testValue ).toBe( 'initial' );
-        });
+    it( 'Can create a most basic layout', function() {
+        expect( myComponent.state.testValue ).toBe( 'initial' );
     });
 
     it( 'returns the initial state', function(){
-        var config = myLayout.toConfig();
+        var config = layout.toConfig();
         expect( config.content[ 0 ].content[ 0 ].componentState.testValue ).toBe( 'initial' );
     });
 
     it( 'emits stateChanged when a component updates its state', function(){
         var stateChanges = 0;
 
-        myLayout.on( 'stateChanged', function(){
+        layout.on( 'stateChanged', function(){
             stateChanges++;
         });
 
@@ -57,12 +51,12 @@ describe( 'Sets and retrieves a component\'s state', function() {
     });
 
     it( 'returns the updated state', function(){
-        var config = myLayout.toConfig();
+        var config = layout.toConfig();
         expect( config.content[ 0 ].content[ 0 ].componentState.testValue ).toBe( 'updated' );
     });
 
     it( 'Destroys the layout', function(){
-        myLayout.destroy();
-        expect( myLayout.root.contentItems.length ).toBe( 0 );
+        layout.destroy();
+        expect( layout.root.contentItems.length ).toBe( 0 );
     });
 });

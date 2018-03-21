@@ -15,17 +15,15 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        './lib/jquery.js',
-        './build/ns.js',
-        './src/js/utils/utils.js',
-        './src/js/**',
-        './test/**'
+        'node_modules/jquery/dist/jquery.js',
+        'dist/goldenlayout.js',
+        'test/**/*.js'
     ],
 
 
     // list of files to exclude
     exclude: [
-      
+
     ],
 
 

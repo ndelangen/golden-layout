@@ -1,19 +1,23 @@
-
 testTools = {};
 
-testTools.createLayout = function( config ) {
+testTools.createLayout = function( config, createdCallback = null) {
     var myLayout = new window.GoldenLayout( config );
 
-    myLayout.registerComponent( 'testComponent', testTools.TestComponent );
+    if (createdCallback !== null) {
+        createdCallback(myLayout);
+    } else {
+        myLayout.registerComponent( 'testComponent', testTools.TestComponent );
+    }
+
+    const resultPromise = new Promise((res, rej) => {
+        myLayout.on('initialised', () => {
+            res(myLayout);
+        });
+    });
 
     myLayout.init();
 
-
-    waitsFor(function(){
-        return myLayout.isInitialised;
-    });
-
-    return myLayout;
+    return resultPromise;
 };
 
 testTools.TestComponent = function( container, state ){
@@ -43,19 +47,20 @@ testTools.verifyPath = function( path, layout, expect ) {
     expect( layout.root.contentItems.length ).toBe( 1 );
 
     var pathSegments = path.split( '.' ),
-        node = layout.root.contentItems[ 0 ],
+        node = layout.root.contentItems[0],
         i;
 
-    for( i = 0; i < pathSegments.length; i++ ) {
+    for (const segment of pathSegments) {
+        const segmentNum = parseInt(segment);
 
-        if( isNaN( pathSegments[ i ] ) ) {
-            expect( node.type ).toBe( pathSegments[ i ] );
+        if(isNaN(segment)) {
+            expect(node.type).toBe(segment);
         } else {
-            node = node.contentItems[ parseInt( pathSegments[ i ], 10 ) ];
+            node = node.contentItems[segmentNum];
 
-            expect( node ).toBeDefined();
+            expect(node).toBeDefined();
 
-            if( node === undefined ) {
+            if(node === undefined) {
                 return null;
             }
         }

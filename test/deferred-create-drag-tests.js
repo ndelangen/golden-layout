@@ -2,8 +2,8 @@ describe( 'supports drag creation with deferred content', function() {
 
     var layout, dragSrc;
 
-    it( 'creates a layout', function() {
-        layout = testTools.createLayout( {
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [ {
                 type: 'stack',
                 content: [ {
@@ -12,8 +12,10 @@ describe( 'supports drag creation with deferred content', function() {
                     componentName: 'testComponent'
                 } ]
             } ]
-        } );
+        }).then(l => layout = l);
+    }, 10000);
 
+    it( 'creates a layout', function() {
         expect( layout.isInitialised ).toBe( true );
     } );
 

@@ -1,8 +1,8 @@
 describe( 'tabs apply their configuration', function(){
     var layout;
 
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'stack',
                 content: [{
@@ -15,13 +15,15 @@ describe( 'tabs apply their configuration', function(){
                     reorderEnabled: false
                 }]
             }]
-        });
+        }).then(l => layout = l);
+    }, 10000);
 
+    it( 'creates a layout', function(){
         expect( layout.isInitialised ).toBe( true );
     });
 
     it( 'attached a drag listener to the first tab', function(){
-        
+
 
         var item1 = layout.root.contentItems[ 0 ].contentItems[ 0 ],
             item2 = layout.root.contentItems[ 0 ].contentItems[ 1 ],

@@ -1,18 +1,21 @@
-describe( 'The layout can be manipulated at runtime', function(){
-
+describe('The layout can be manipulated at runtime', function() {
     var myLayout;
 
-    it('Creates an initial layout', function(){
-        myLayout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'component',
                 componentName: 'testComponent'
             }]
-        });
+        }).then(layout => myLayout = layout);
+    }, 10000);
+
+    it('creates a layout', function(){
+        expect( myLayout.isInitialised ).toBe( true );
     });
 
     it( 'has the right initial structure', function(){
-        testTools.verifyPath( 'stack.0.component', myLayout, expect );
+        testTools.verifyPath('stack.0.component', myLayout, expect);
     });
 
     it( 'adds a child to the stack', function(){

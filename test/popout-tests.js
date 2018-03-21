@@ -2,8 +2,8 @@ describe( 'it can popout components into browserwindows', function(){
 
     var layout, browserPopout;
 
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'stack',
                 content: [{
@@ -17,8 +17,11 @@ describe( 'it can popout components into browserwindows', function(){
                     id: 'componentB'
                 }]
             }]
-        });
+        }).then(l => layout = l);
+    }, 10000);
 
+
+    it( 'creates a layout', function(){
         expect( layout.isInitialised ).toBe( true );
     });
 
@@ -61,7 +64,7 @@ describe( 'it can popout components into browserwindows', function(){
         });
 
         waitsFor(function(){
-            return browserPopout.getWindow().closed && 
+            return browserPopout.getWindow().closed &&
                 layout.openPopouts.length === 0;
         });
     });

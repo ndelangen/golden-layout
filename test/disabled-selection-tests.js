@@ -1,9 +1,8 @@
 describe( 'content items are abled to to emit events that bubble up the tree', function(){
-
     var layout, selectionChangedSpy, stackA, stackB;
 
-    it( 'creates a layout', function(){
-        layout = testTools.createLayout({
+    beforeAll(function() {
+        return testTools.createLayout({
             content: [{
                 type: 'stack',
                 content: [{
@@ -22,7 +21,10 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
                     type: 'row'
                 }]
             }]
-        });
+        }).then(l => layout = l);
+    }, 10000);
+
+    it( 'creates a layout', function(){
         expect( layout.isInitialised ).toBe( true );
         testTools.verifyPath( 'stack.0.column.0.stack.0.component', layout, expect );
         testTools.verifyPath( 'stack.1.row', layout, expect );
@@ -41,18 +43,18 @@ describe( 'content items are abled to to emit events that bubble up the tree', f
         expect( stackB.type ).toBe( 'stack' );
 
         selectionChangedSpy = window.jasmine.createSpyObj( 'selectionChanged', ['onselectionChanged'] );
-    
+
         layout.on( 'selectionChanged', selectionChangedSpy.onselectionChanged );
     });
 
     it( 'clicks a header, but nothing happens since enableSelection == false', function(){
         var headerElement = stackA.element.find( '.lm_header' );
         expect( headerElement.length ).toBe( 1 );
-        expect( selectionChangedSpy.onselectionChanged.calls.length ).toBe( 0 );
+        expect( selectionChangedSpy.onselectionChanged.calls.count() ).toBe( 0 );
         expect( layout.selectedItem ).toBe( null );
         expect( headerElement.hasClass( 'lm_selectable' ) ).toBe( false );
         headerElement.trigger( 'click' );
-        expect( selectionChangedSpy.onselectionChanged.calls.length ).toBe( 0 );
+        expect( selectionChangedSpy.onselectionChanged.calls.count() ).toBe( 0 );
         expect( layout.selectedItem ).toBe( null );
     });
 
