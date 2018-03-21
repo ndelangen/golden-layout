@@ -5,6 +5,7 @@
   "license": "MIT",
   "description": "A multi-screen javascript Layout manager https://golden-layout.com",
   "main": "./dist/goldenlayout.js",
+  "module": "./dist/goldenlayout.es.js",
   "directories": {
     "test": "test"
   },
