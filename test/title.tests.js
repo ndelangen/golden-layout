@@ -1,36 +1,34 @@
-describe('content items are abled to to emit events that bubble up the tree', function() {
-    var layout, itemWithTitle, itemWithoutTitle, stack;
+const testTools = require('./test.tools.js');
 
-    beforeAll(function() {
-        return testTools
-            .createLayout({
-                content: [
-                    {
-                        type: 'stack',
-                        content: [
-                            {
-                                type: 'component',
-                                componentName: 'testComponent',
-                                title: 'First Title',
-                                id: 'hasTitle'
-                            },
-                            {
-                                type: 'component',
-                                componentName: 'testComponent',
-                                id: 'noTitle'
-                            }
-                        ]
-                    }
-                ]
-            })
-            .then(l => (layout = l));
-    }, 10000);
+describe('content items are abled to to emit events that bubble up the tree', () => {
+    let layout, itemWithTitle, itemWithoutTitle, stack;
 
-    it('creates a layout', function() {
+    test('creates a layout', async () => {
+        layout = await testTools.createLayout({
+            content: [
+                {
+                    type: 'stack',
+                    content: [
+                        {
+                            type: 'component',
+                            componentName: 'testComponent',
+                            title: 'First Title',
+                            id: 'hasTitle'
+                        },
+                        {
+                            type: 'component',
+                            componentName: 'testComponent',
+                            id: 'noTitle'
+                        }
+                    ]
+                }
+            ]
+        });
+
         expect(layout.isInitialised).toBe(true);
     });
 
-    it('applies titles from configuration', function() {
+    test('applies titles from configuration', () => {
         itemWithTitle = layout.root.getItemsById('hasTitle')[0];
         itemWithoutTitle = layout.root.getItemsById('noTitle')[0];
 
@@ -38,9 +36,9 @@ describe('content items are abled to to emit events that bubble up the tree', fu
         expect(itemWithoutTitle.config.title).toBe('testComponent');
     });
 
-    it('displays the title on the tab', function() {
+    test('displays the title on the tab', () => {
         stack = layout.root.getItemsByType('stack')[0];
-        expect(stack.header.tabs.length).toBe(2);
+        expect(stack.header.tabs).toHaveLength(2);
         expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
             'First Title'
         );
@@ -49,27 +47,27 @@ describe('content items are abled to to emit events that bubble up the tree', fu
         );
     });
 
-    it('updates the title when calling setTitle on the item', function() {
+    test('updates the title when calling setTitle on the item', () => {
         itemWithTitle.setTitle('Second Title');
         expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
             'Second Title'
         );
     });
 
-    it('updates the title when calling setTitle from the container', function() {
+    test('updates the title when calling setTitle from the container', () => {
         itemWithTitle.container.setTitle('Third Title');
         expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
             'Third Title'
         );
     });
 
-    it('Persists the title', function() {
+    test('Persists the title', () => {
         expect(layout.toConfig().content[0].content[0].title).toBe(
             'Third Title'
         );
     });
 
-    it('supports html in title', function() {
+    test('supports html in title', () => {
         itemWithTitle.container.setTitle('title <b>with</b> html');
         expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
             'title <b>with</b> html'
@@ -82,7 +80,7 @@ describe('content items are abled to to emit events that bubble up the tree', fu
         );
     });
 
-    it('destroys the layout', function() {
+    test('destroys the layout', () => {
         layout.destroy();
     });
 });

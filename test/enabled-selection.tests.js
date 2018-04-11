@@ -1,8 +1,11 @@
-describe('content items are abled to to emit events that bubble up the tree', function() {
-    var layout, selectionChangedSpy, stackA, stackB;
+const testTools = require('./test.tools.js');
 
-    it('creates a layout', function() {
-        layout = testTools.createLayout({
+describe('content items are abled to to emit events that bubble up the tree', () => {
+    let layout, stackA, stackB;
+    const onselectionChanged = jest.fn();
+
+    test('creates a layout', async () => {
+        layout = await testTools.createLayout({
             settings: {
                 selectionEnabled: true
             },
@@ -41,10 +44,10 @@ describe('content items are abled to to emit events that bubble up the tree', fu
         testTools.verifyPath('stack.1.row', layout, expect);
     });
 
-    it('attaches event listeners and retrieves stacks', function() {
-        var components = layout.root.getItemsById('test');
+    test('attaches event listeners and retrieves stacks', () => {
+        const components = layout.root.getItemsById('test');
 
-        expect(components.length).toBe(2);
+        expect(components).toHaveLength(2);
 
         stackA = components[0].parent;
         stackB = components[1].parent;
@@ -52,61 +55,57 @@ describe('content items are abled to to emit events that bubble up the tree', fu
         expect(stackA.type).toBe('stack');
         expect(stackB.type).toBe('stack');
 
-        selectionChangedSpy = window.jasmine.createSpyObj('selectionChanged', [
-            'onselectionChanged'
-        ]);
-
-        layout.on('selectionChanged', selectionChangedSpy.onselectionChanged);
+        layout.on('selectionChanged', onselectionChanged);
     });
 
-    it('clicks a header and it selects a stack', function() {
-        var headerElement = stackA.element.find('.lm_header');
-        expect(headerElement.length).toBe(1);
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(0);
+    test('clicks a header and it selects a stack', () => {
+        const headerElement = stackA.element.find('.lm_header');
+        expect(headerElement).toHaveLength(1);
+        expect(onselectionChanged.mock.calls).toHaveLength(0);
         expect(layout.selectedItem).toBe(null);
         expect(headerElement.hasClass('lm_selectable')).toBe(true);
         expect(stackA.element.hasClass('lm_selected')).toBe(false);
 
         headerElement.trigger('click');
 
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(1);
+        expect(onselectionChanged.mock.calls).toHaveLength(1);
         expect(layout.selectedItem).toBe(stackA);
         expect(stackA.element.hasClass('lm_selected')).toBe(true);
     });
 
-    it('clicks changes selection', function() {
-        var headerElement = stackB.element.find('.lm_header');
-        expect(headerElement.length).toBe(1);
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(1);
+    test('clicks changes selection', () => {
+        const headerElement = stackB.element.find('.lm_header');
+        expect(headerElement).toHaveLength(1);
+        expect(onselectionChanged.mock.calls).toHaveLength(1);
         expect(layout.selectedItem).toBe(stackA);
         expect(headerElement.hasClass('lm_selectable')).toBe(true);
         expect(stackA.element.hasClass('lm_selected')).toBe(true);
 
         headerElement.trigger('click');
 
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(2);
+        expect(onselectionChanged.mock.calls).toHaveLength(2);
         expect(layout.selectedItem).toBe(stackB);
         expect(stackA.element.hasClass('lm_selected')).toBe(false);
         expect(stackB.element.hasClass('lm_selected')).toBe(true);
     });
 
-    it('changes selection programatically', function() {
-        var headerElement = stackA.element.find('.lm_header');
-        expect(headerElement.length).toBe(1);
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(2);
+    test('changes selection programatically', () => {
+        const headerElement = stackA.element.find('.lm_header');
+        expect(headerElement).toHaveLength(1);
+        expect(onselectionChanged.mock.calls).toHaveLength(2);
         expect(layout.selectedItem).toBe(stackB);
         expect(headerElement.hasClass('lm_selectable')).toBe(true);
         expect(stackA.element.hasClass('lm_selected')).toBe(false);
 
         layout.selectItem(stackA);
 
-        expect(selectionChangedSpy.onselectionChanged.calls.count()).toBe(4);
+        expect(onselectionChanged.mock.calls).toHaveLength(4);
         expect(layout.selectedItem).toBe(stackA);
         expect(stackA.element.hasClass('lm_selected')).toBe(true);
         expect(stackB.element.hasClass('lm_selected')).toBe(false);
     });
 
-    it('destroys the layout', function() {
+    test('destroys the layout', () => {
         layout.destroy();
     });
 });

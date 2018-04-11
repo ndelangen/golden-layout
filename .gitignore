@@ -4,3 +4,5 @@ typings
 npm-debug.log
 lib/
 dist
+*.log
+test/.cache

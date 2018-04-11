@@ -1,40 +1,36 @@
-describe('The layout can be manipulated at runtime', function() {
-    var myLayout;
+const testTools = require('./test.tools.js');
 
-    beforeAll(function() {
-        return testTools
-            .createLayout({
-                content: [
-                    {
-                        type: 'component',
-                        componentName: 'testComponent'
-                    }
-                ]
-            })
-            .then(layout => (myLayout = layout));
-    }, 10000);
+describe('The layout can be manipulated at runtime', () => {
+    let myLayout;
 
-    it('creates a layout', function() {
-        expect(myLayout.isInitialised).toBe(true);
+    test('Creates an initial layout', async () => {
+        myLayout = await testTools.createLayout({
+            content: [
+                {
+                    type: 'component',
+                    componentName: 'testComponent'
+                }
+            ]
+        });
     });
 
-    it('has the right initial structure', function() {
+    test('has the right initial structure', () => {
         testTools.verifyPath('stack.0.component', myLayout, expect);
     });
 
-    it('adds a child to the stack', function() {
+    test('adds a child to the stack', () => {
         myLayout.root.contentItems[0].addChild({
             type: 'component',
             componentName: 'testComponent'
         });
 
-        expect(myLayout.root.contentItems[0].contentItems.length).toBe(2);
+        expect(myLayout.root.contentItems[0].contentItems).toHaveLength(2);
         testTools.verifyPath('stack.1.component', myLayout, expect);
     });
 
-    it('replaces a component with a row of components', function() {
-        var oldChild = myLayout.root.contentItems[0].contentItems[1];
-        var newChild = {
+    test('replaces a component with a row of components', () => {
+        const oldChild = myLayout.root.contentItems[0].contentItems[1];
+        const newChild = {
             type: 'row',
             content: [
                 {
@@ -62,8 +58,8 @@ describe('The layout can be manipulated at runtime', function() {
         );
     });
 
-    it('Has setup parents correctly', function() {
-        var component = testTools.verifyPath(
+    test('Has setup parents correctly', () => {
+        const component = testTools.verifyPath(
             'stack.1.row.1.stack.0.component',
             myLayout,
             expect
@@ -75,14 +71,14 @@ describe('The layout can be manipulated at runtime', function() {
         expect(component.parent.parent.parent.parent.isRoot).toBe(true);
     });
 
-    it('Destroys a component and its parent', function() {
-        var stack = testTools.verifyPath(
+    test('Destroys a component and its parent', () => {
+        const stack = testTools.verifyPath(
             'stack.1.row.1.stack',
             myLayout,
             expect
         );
-        expect(stack.contentItems.length).toBe(1);
+        expect(stack.contentItems).toHaveLength(1);
         stack.contentItems[0].remove();
-        expect(stack.contentItems.length).toBe(0);
+        expect(stack.contentItems).toHaveLength(0);
     });
 });

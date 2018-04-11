@@ -1,54 +1,60 @@
 {
     "name": "golden-layout",
     "version": "1.5.9",
-    "author": "deepstreamHub GmbH",
+    "description": "",
     "license": "MIT",
-    "description":
-        "A multi-screen javascript Layout manager https://golden-layout.com",
+    "author": "deepstreamHub GmbH",
     "main": "./dist/goldenlayout.js",
     "module": "./dist/goldenlayout.es.js",
+    "directories": {
+        "test": "test",
+        "lib": "src/js"
+    },
     "scripts": {
         "clean": "rm -rf dist",
         "build": "rollup -c",
         "build:watch": "npm run build -- --watch",
-        "test": "karma start --single-run",
-        "test:watch": "karma start",
+        "test": "NODE_ENV=test jest",
+        "test:watch": "npm run test -- --watch",
         "precommit": "pretty-quick --staged",
-        "prepublishOnly": "npm run clean && npm run build"
+        "prepublishOnly": "npm run clean && npm run build",
+        "lint": "eslint . --fix"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/deepstreamIO/golden-layout.git"
+    "engines": {
+        "node": ">=8.0.0",
+        "yarn": ">=1.0.0"
     },
     "keywords": ["layout manager", "javascript", "docker", "layout", "popouts"],
     "bugs": {
         "url": "https://github.com/deepstreamIO/golden-layout/issues"
     },
     "homepage": "https://github.com/deepstreamIO/golden-layout",
-    "jspm": {
-        "main": "dist/goldenlayout",
-        "format": "global",
-        "registry": "jspm",
-        "dependencies": {
-            "jquery": "^2.1.0"
-        },
-        "shim": {
-            "dist/goldenlayout": ["jquery"]
-        }
-    },
-    "files": ["src", "dist", "index.d.ts"],
+    "files": ["src", "dist"],
     "dependencies": {
         "jquery": "*"
     },
     "devDependencies": {
+        "babel-core": "^6.26.0",
+        "babel-eslint": "^8.2.2",
+        "babel-plugin-glamorous-displayname": "^2.2.0",
+        "babel-plugin-transform-export-extensions": "^6.22.0",
+        "babel-plugin-transform-runtime": "^6.23.0",
+        "babel-preset-env": "^1.6.1",
+        "babel-preset-react": "^6.24.1",
+        "babel-preset-stage-2": "^6.24.1",
+        "babel-register": "^6.26.0",
+        "eslint": "^4.19.1",
+        "eslint-config-airbnb": "^16.1.0",
+        "eslint-config-prettier": "^2.9.0",
+        "eslint-plugin-import": "^2.9.0",
+        "eslint-plugin-jest": "^21.15.0",
+        "eslint-plugin-json": "^1.2.0",
+        "eslint-plugin-jsx-a11y": "^6.0.3",
+        "eslint-plugin-prettier": "^2.6.0",
+        "eslint-plugin-react": "^7.7.0",
         "handlebars": "2.0.0-alpha.2",
         "husky": "^0.14.3",
-        "jasmine-core": "^3.1.0",
-        "karma": "^2.0.0",
-        "karma-chrome-launcher": "^2.2.0",
-        "karma-coverage": "^1.1.1",
-        "karma-jasmine": "^1.1.1",
-        "karma-phantomjs-launcher": "^1.0.4",
+        "jest": "^22.4.3",
         "prettier": "^1.11.1",
         "pretty-quick": "^1.4.1",
         "rollup": "^0.57.1"
@@ -56,5 +62,12 @@
     "optionalDependencies": {
         "react": "14 || 15 || 16",
         "react-dom": "14 || 15 || 16"
+    },
+    "jest": {
+        "cacheDirectory": "<rootDir>/test/.cache",
+        "testRegex": "(\\.(test|spec|tests))\\.(ts|tsx|js|jsx)$",
+        "moduleDirectories": ["node_modules"],
+        "testPathIgnorePatterns": [],
+        "moduleFileExtensions": ["js", "json", "jsx"]
     }
 }
