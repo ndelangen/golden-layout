@@ -33,7 +33,7 @@ export default class Header extends EventEmitter {
         this.hideAdditionalTabsDropdown = this._hideAdditionalTabsDropdown.bind(
             this
         );
-        $(document).mouseup(this.hideAdditionalTabsDropdown);
+        $(document).on('mouseup', this.hideAdditionalTabsDropdown);
 
         this._lastVisibleTabIndex = -1;
         this._tabControlOffset = this.layoutManager.config.settings.tabControlOffset;

@@ -782,7 +782,7 @@ export default class GoldenLayout extends utils.EventEmitter {
      */
     _bindEvents() {
         if (this._isFullPage) {
-            $(window).resize(this._resizeFunction);
+            $(window).on('resize', this._resizeFunction);
         }
         $(window).on('unload beforeunload', this._unloadFunction);
     }
@@ -859,7 +859,7 @@ export default class GoldenLayout extends utils.EventEmitter {
                 '</div>'
         );
 
-        popInButton.click(() => {
+        popInButton.on('click', () => {
             this.emit('popIn');
         });
 

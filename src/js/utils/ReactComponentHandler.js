@@ -42,7 +42,7 @@ export default class ReactComponentHandler {
      * Fired by react when the component is created.
      * <p>
      * Note: This callback is used instead of the return from `ReactDOM.render` because
-     *       of https://github.com/facebook/react/issues/10309.
+     *	   of https://github.com/facebook/react/issues/10309.
      * </p>
      *
      * @private
@@ -51,11 +51,17 @@ export default class ReactComponentHandler {
      */
     _gotReactComponent(component) {
         this._reactComponent = component;
-        this._originalComponentWillUpdate =
-            this._reactComponent.componentWillUpdate || function() {};
-        this._reactComponent.componentWillUpdate = this._onUpdate.bind(this);
-        if (this._container.getState()) {
-            this._reactComponent.setState(this._container.getState());
+
+        // stateless components will have nothing to copy
+        if (this._reactComponent) {
+            this._originalComponentWillUpdate =
+                this._reactComponent.componentWillUpdate || function() {};
+            this._reactComponent.componentWillUpdate = this._onUpdate.bind(
+                this
+            );
+            if (this._container.getState()) {
+                this._reactComponent.setState(this._container.getState());
+            }
         }
     }
 
