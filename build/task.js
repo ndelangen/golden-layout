@@ -54,7 +54,7 @@ module.exports = function() {
 			namespace( dir.replace( jsPath, '' ).split( path.sep ), directories );
 		} );
 		data.directories = directories;
-		var ns = 'var lm=' + JSON.stringify( data.directories ) + ';';
+		var ns = `var lm=${JSON.stringify( data.directories )};`;
 		fs.writeFileSync( __dirname + '/ns.js', ns );
 		fs.writeFile( indexWritePath, indexTemplate( data ), done );
 	} );
