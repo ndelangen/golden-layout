@@ -14,10 +14,12 @@
     "clean": "rm -rf dist",
     "build": "rollup -c",
     "build:watch": "npm run build -- --watch",
+    "less":
+      "find src/less -iname \"*.less\" -exec bash -c 'npx lessc --source-map --source-map-include-source {} $(echo {} | sed s:less:css:g | sed s:^src:dist:)' \\;",
     "test": "NODE_ENV=test jest",
     "test:watch": "npm run test -- --watch",
     "precommit": "pretty-quick --staged",
-    "prepublishOnly": "npm run clean && npm run build",
+    "prepublishOnly": "npm run clean && npm run less && npm run build",
     "lint": "eslint . --fix"
   },
   "engines": {
@@ -55,6 +57,7 @@
     "handlebars": "2.0.0-alpha.2",
     "husky": "^0.14.3",
     "jest": "^22.4.3",
+    "less": "^3.0.1",
     "prettier": "^1.11.1",
     "pretty-quick": "^1.4.1",
     "rollup": "^0.57.1"
