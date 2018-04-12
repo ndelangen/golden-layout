@@ -13,16 +13,16 @@ describe('content items are abled to to emit events that bubble up the tree', ()
               type: 'component',
               componentName: 'testComponent',
               title: 'First Title',
-              id: 'hasTitle',
+              id: 'hasTitle'
             },
             {
               type: 'component',
               componentName: 'testComponent',
-              id: 'noTitle',
-            },
-          ],
-        },
-      ],
+              id: 'noTitle'
+            }
+          ]
+        }
+      ]
     });
 
     expect(layout.isInitialised).toBe(true);
@@ -39,18 +39,26 @@ describe('content items are abled to to emit events that bubble up the tree', ()
   test('displays the title on the tab', () => {
     stack = layout.root.getItemsByType('stack')[0];
     expect(stack.header.tabs).toHaveLength(2);
-    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe('First Title');
-    expect(stack.header.tabs[1].element.find('.lm_title').html()).toBe('testComponent');
+    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
+      'First Title'
+    );
+    expect(stack.header.tabs[1].element.find('.lm_title').html()).toBe(
+      'testComponent'
+    );
   });
 
   test('updates the title when calling setTitle on the item', () => {
     itemWithTitle.setTitle('Second Title');
-    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe('Second Title');
+    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
+      'Second Title'
+    );
   });
 
   test('updates the title when calling setTitle from the container', () => {
     itemWithTitle.container.setTitle('Third Title');
-    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe('Third Title');
+    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
+      'Third Title'
+    );
   });
 
   test('Persists the title', () => {
@@ -59,8 +67,12 @@ describe('content items are abled to to emit events that bubble up the tree', ()
 
   test('supports html in title', () => {
     itemWithTitle.container.setTitle('title <b>with</b> html');
-    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe('title <b>with</b> html');
-    expect(stack.header.tabs[0].element.find('.lm_title').text()).toBe('title with html');
+    expect(stack.header.tabs[0].element.find('.lm_title').html()).toBe(
+      'title <b>with</b> html'
+    );
+    expect(stack.header.tabs[0].element.find('.lm_title').text()).toBe(
+      'title with html'
+    );
     expect(stack.header.tabs[0].element.attr('title')).toBe('title with html');
   });
 

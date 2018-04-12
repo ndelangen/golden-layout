@@ -16,21 +16,21 @@ describe('content items are abled to to emit events that bubble up the tree', ()
                 {
                   type: 'component',
                   componentName: 'testComponent',
-                  id: 'test',
+                  id: 'test'
                 },
                 {
                   type: 'component',
                   componentName: 'testComponent',
-                  id: 'test',
-                },
-              ],
+                  id: 'test'
+                }
+              ]
             },
             {
-              type: 'row',
-            },
-          ],
-        },
-      ],
+              type: 'row'
+            }
+          ]
+        }
+      ]
     });
     expect(layout.isInitialised).toBe(true);
     testTools.verifyPath('stack.0.column.0.stack.0.component', layout, expect);

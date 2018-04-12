@@ -1,24 +1,38 @@
 {
-  "name": "@ndelangen/golden-layout",
+  "name": "golden-layout",
   "version": "1.5.9",
   "description": "",
   "license": "MIT",
   "author": "deepstreamHub GmbH",
   "main": "./dist/goldenlayout.js",
-  "typings": "./index.d.ts",
+  "module": "./dist/goldenlayout.es.js",
   "directories": {
-    "test": "test"
+    "test": "test",
+    "lib": "src/js"
   },
   "scripts": {
-    "lint": "eslint . --fix",
-    "prepublish": "typings install",
-    "publish": "npm -s run tslint",
-    "test": "grunt test && npm run tslint",
-    "tslint": "tslint \"**/*.ts\" -e \"node_modules/**\" -e \"typings/**\"",
-    "test-new": "NODE_ENV=test jest"
+    "clean": "rm -rf dist",
+    "build": "rollup -c",
+    "build:watch": "npm run build -- --watch",
+    "less":
+      "find src/less -iname \"*.less\" -exec bash -c 'npx lessc --source-map --source-map-include-source {} $(echo {} | sed s:less:css:g | sed s:^src:dist:)' \\;",
+    "test": "NODE_ENV=test jest",
+    "test:watch": "npm run test -- --watch",
+    "precommit": "pretty-quick --staged",
+    "prepublishOnly": "npm run clean && npm run less && npm run build",
+    "lint": "eslint . --fix"
   },
+  "engines": {
+    "node": ">=8.0.0",
+    "yarn": ">=1.0.0"
+  },
+  "keywords": ["layout manager", "javascript", "docker", "layout", "popouts"],
+  "bugs": {
+    "url": "https://github.com/deepstreamIO/golden-layout/issues"
+  },
+  "homepage": "https://github.com/deepstreamIO/golden-layout",
+  "files": ["src", "dist"],
   "dependencies": {
-    "gulp-uglify-es": "^1.0.1",
     "jquery": "*"
   },
   "devDependencies": {
@@ -40,76 +54,23 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-react": "^7.7.0",
-    "grunt": "~1.0.2",
-    "grunt-contrib-less": "^1.4.1",
-    "grunt-contrib-watch": "1.0.0",
-    "grunt-gulp": "^1.0.1",
-    "grunt-karma": "^2.0.0",
-    "grunt-release": "0.14.0",
-    "gulp": "^3.9.1",
-    "gulp-concat": "^2.6.0",
-    "gulp-continuous-concat": "^0.1.1",
-    "gulp-insert": "^0.5.0",
-    "gulp-uglify": "^3.0.0",
-    "gulp-watch": "^5.0.0",
     "handlebars": "2.0.0-alpha.2",
+    "husky": "^0.14.3",
     "jest": "^22.4.3",
-    "karma": "0.13.*",
-    "karma-chrome-launcher": "~0.1.4",
-    "karma-coverage": "0.2.4",
-    "karma-firefox-launcher": "^1.0.0",
-    "karma-ie-launcher": "~0.1.5",
-    "karma-jasmine": "~0.1.5",
-    "karma-phantomjs-launcher": "^1.0.2",
+    "less": "^3.0.1",
     "prettier": "^1.11.1",
-    "tslint": "^3.7.3",
-    "tslint-config-typings": "^0.2.2",
-    "typescript": "^1.8.9",
-    "typings": "^0.7.12",
-    "walker": "1.0.7"
+    "pretty-quick": "^1.4.1",
+    "rollup": "^0.57.1"
   },
   "optionalDependencies": {
     "react": "14 || 15 || 16",
     "react-dom": "14 || 15 || 16"
   },
-  "engines": {
-    "node": ">=8.0.0",
-    "yarn": ">=1.0.0"
-  },
-  "npmFileMap": [
-    {
-      "basePath": "/dist/",
-      "files": [
-        "goldenlayout.js",
-        "goldenlayout.min.js"
-      ]
-    },
-    {
-      "basePath": "/src/css/",
-      "files": [
-        "goldenlayout.base.css",
-        "goldenlayout-dark-theme.css",
-        "goldenlayout-light-theme.css"
-      ]
-    },
-    {
-      "basePath": "/",
-      "files": [
-        "typings.json"
-      ]
-    }
-  ],
   "jest": {
     "cacheDirectory": "<rootDir>/test/.cache",
     "testRegex": "(\\.(test|spec|tests))\\.(ts|tsx|js|jsx)$",
-    "moduleDirectories": [
-      "node_modules"
-    ],
+    "moduleDirectories": ["node_modules"],
     "testPathIgnorePatterns": [],
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "jsx"
-    ]
+    "moduleFileExtensions": ["js", "json", "jsx"]
   }
 }

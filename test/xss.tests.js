@@ -5,7 +5,9 @@ describe('Basic XSS filtering is applied', () => {
 
   test('escapes tags', () => {
     const escapedString = filterFn('>\'>"><img src=x onerror=alert(0)>');
-    expect(escapedString).toBe('&gt;\'&gt;"&gt;&lt;img src=x on&#101;rror=alert(0)&gt;');
+    expect(escapedString).toBe(
+      '&gt;\'&gt;"&gt;&lt;img src=x on&#101;rror=alert(0)&gt;'
+    );
   });
 
   test('escapes javascript urls', () => {

@@ -11,16 +11,16 @@ describe('tabs apply their configuration', () => {
           content: [
             {
               type: 'component',
-              componentName: 'testComponent',
+              componentName: 'testComponent'
             },
             {
               type: 'component',
               componentName: 'testComponent',
-              reorderEnabled: false,
-            },
-          ],
-        },
-      ],
+              reorderEnabled: false
+            }
+          ]
+        }
+      ]
     });
 
     expect(layout.isInitialised).toBe(true);

@@ -12,7 +12,7 @@ describe('it is possible to select elements from the tree using selectors', () =
             {
               type: 'component',
               id: 'simpleStringId',
-              componentName: 'testComponent',
+              componentName: 'testComponent'
             },
             {
               type: 'column',
@@ -20,13 +20,13 @@ describe('it is possible to select elements from the tree using selectors', () =
               content: [
                 {
                   type: 'column',
-                  id: ['groupB'],
-                },
-              ],
-            },
-          ],
-        },
-      ],
+                  id: ['groupB']
+                }
+              ]
+            }
+          ]
+        }
+      ]
     };
     layout = await testTools.createLayout(config);
     testTools.verifyPath('column.0.stack.0.component', layout, expect);
@@ -74,7 +74,9 @@ describe('it is possible to select elements from the tree using selectors', () =
   });
 
   test('allows for chaining', () => {
-    const innerColumns = layout.root.getItemsById('outerColumn')[0].getItemsByType('column');
+    const innerColumns = layout.root
+      .getItemsById('outerColumn')[0]
+      .getItemsByType('column');
 
     expect(innerColumns).toHaveLength(1);
     expect(innerColumns[0].type).toBe('column');

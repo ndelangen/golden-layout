@@ -1,22 +1,30 @@
-lm.container.ItemContainer = function(config, parent, layoutManager) {
-  lm.utils.EventEmitter.call(this);
+import EventEmitter from '../utils/EventEmitter';
 
-  this.width = null;
-  this.height = null;
-  this.title = config.componentName;
-  this.parent = parent;
-  this.layoutManager = layoutManager;
-  this.isHidden = false;
+import $ from 'jquery';
 
-  this._config = config;
-  this._element = $(
-    ['<div class="lm_item_container">', '<div class="lm_content"></div>', '</div>'].join('')
-  );
+export default class ItemContainer extends EventEmitter {
+  constructor(config, parent, layoutManager) {
+    super();
 
-  this._contentElement = this._element.find('.lm_content');
-};
+    this.width = null;
+    this.height = null;
+    this.title = config.componentName;
+    this.parent = parent;
+    this.layoutManager = layoutManager;
+    this.isHidden = false;
 
-lm.utils.copy(lm.container.ItemContainer.prototype, {
+    this._config = config;
+    this._element = $(
+      [
+        '<div class="lm_item_container">',
+        '<div class="lm_content"></div>',
+        '</div>'
+      ].join('')
+    );
+
+    this._contentElement = this._element.find('.lm_content');
+  }
+
   /**
    * Get the inner DOM element the container's content
    * is intended to live in
@@ -25,7 +33,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
    */
   getElement() {
     return this._contentElement;
-  },
+  }
 
   /**
    * Hide the container. Notifies the containers content first
@@ -38,7 +46,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
     this.emit('hide');
     this.isHidden = true;
     this._element.hide();
-  },
+  }
 
   /**
    * Shows a previously hidden container. Notifies the
@@ -55,7 +63,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
     if (this.height != 0 || this.width != 0) {
       this.emit('shown');
     }
-  },
+  }
 
   /**
    * Set the size from within the container. Traverses up
@@ -95,10 +103,12 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
     direction = rowOrColumn.isColumn ? 'height' : 'width';
     newSize = direction === 'height' ? height : width;
 
-    totalPixel = this[direction] * (1 / (rowOrColumnChild.config[direction] / 100));
+    totalPixel =
+      this[direction] * (1 / (rowOrColumnChild.config[direction] / 100));
     percentage = newSize / totalPixel * 100;
     delta =
-      (rowOrColumnChild.config[direction] - percentage) / (rowOrColumn.contentItems.length - 1);
+      (rowOrColumnChild.config[direction] - percentage) /
+      (rowOrColumn.contentItems.length - 1);
 
     for (i = 0; i < rowOrColumn.contentItems.length; i++) {
       if (rowOrColumn.contentItems[i] === rowOrColumnChild) {
@@ -111,7 +121,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
     rowOrColumn.callDownwards('setSize');
 
     return true;
-  },
+  }
 
   /**
    * Closes the container if it is closable. Can be called by
@@ -125,7 +135,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
       this.emit('close');
       this.parent.close();
     }
-  },
+  }
 
   /**
    * Returns the current state object
@@ -134,7 +144,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
    */
   getState() {
     return this._config.componentState;
-  },
+  }
 
   /**
    * Merges the provided state into the current one
@@ -145,7 +155,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
    */
   extendState(state) {
     this.setState($.extend(true, this.getState(), state));
-  },
+  }
 
   /**
    * Notifies the layout manager of a stateupdate
@@ -155,7 +165,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
   setState(state) {
     this._config.componentState = state;
     this.parent.emitBubblingEvent('stateChanged');
-  },
+  }
 
   /**
    * Set's the components title
@@ -164,7 +174,7 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
    */
   setTitle(title) {
     this.parent.setTitle(title);
-  },
+  }
 
   /**
    * Set's the containers size. Called by the container's component.
@@ -183,5 +193,5 @@ lm.utils.copy(lm.container.ItemContainer.prototype, {
       this._contentElement.outerWidth(width).outerHeight(height);
       this.emit('resize');
     }
-  },
-});
+  }
+}

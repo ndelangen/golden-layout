@@ -8,9 +8,9 @@ describe('Dynamic ids work properly', () => {
       content: [
         {
           type: 'component',
-          componentName: 'testComponent',
-        },
-      ],
+          componentName: 'testComponent'
+        }
+      ]
     });
   });
 

@@ -20,16 +20,16 @@ describe('emits events when items are created', () => {
               content: [
                 {
                   type: 'component',
-                  componentName: 'testComponent',
-                },
-              ],
+                  componentName: 'testComponent'
+                }
+              ]
             },
             {
-              type: 'row',
-            },
-          ],
-        },
-      ],
+              type: 'row'
+            }
+          ]
+        }
+      ]
     });
 
     layout.registerComponent('testComponent', testTools.TestComponent);

@@ -5,61 +5,62 @@
  *
  * @constructor
  */
-lm.utils.ConfigMinifier = function() {
-  this._keys = [
-    'settings',
-    'hasHeaders',
-    'constrainDragToContainer',
-    'selectionEnabled',
-    'dimensions',
-    'borderWidth',
-    'minItemHeight',
-    'minItemWidth',
-    'headerHeight',
-    'dragProxyWidth',
-    'dragProxyHeight',
-    'labels',
-    'close',
-    'maximise',
-    'minimise',
-    'popout',
-    'content',
-    'componentName',
-    'componentState',
-    'id',
-    'width',
-    'type',
-    'height',
-    'isClosable',
-    'title',
-    'popoutWholeStack',
-    'openPopouts',
-    'parentId',
-    'activeItemIndex',
-    'reorderEnabled',
-    'borderGrabWidth',
+export default class ConfigMinifier {
+  constructor() {
+    this._keys = [
+      'settings',
+      'hasHeaders',
+      'constrainDragToContainer',
+      'selectionEnabled',
+      'dimensions',
+      'borderWidth',
+      'minItemHeight',
+      'minItemWidth',
+      'headerHeight',
+      'dragProxyWidth',
+      'dragProxyHeight',
+      'labels',
+      'close',
+      'maximise',
+      'minimise',
+      'popout',
+      'content',
+      'componentName',
+      'componentState',
+      'id',
+      'width',
+      'type',
+      'height',
+      'isClosable',
+      'title',
+      'popoutWholeStack',
+      'openPopouts',
+      'parentId',
+      'activeItemIndex',
+      'reorderEnabled',
+      'borderGrabWidth'
 
-    // Maximum 36 entries, do not cross this line!
-  ];
-  if (this._keys.length > 36) {
-    throw new Error('Too many keys in config minifier map');
+      // Maximum 36 entries, do not cross this line!
+    ];
+
+    if (this._keys.length > 36) {
+      throw new Error('Too many keys in config minifier map');
+    }
+
+    this._values = [
+      true,
+      false,
+      'row',
+      'column',
+      'stack',
+      'component',
+      'close',
+      'maximise',
+      'minimise',
+      'open in new window'
+    ];
   }
 
-  this._values = [
-    true,
-    false,
-    'row',
-    'column',
-    'stack',
-    'component',
-    'close',
-    'maximise',
-    'minimise',
-    'open in new window',
-  ];
-};
-
-lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
   /**
    * Takes a GoldenLayout configuration object and
    * replaces its keys and values recursively with
@@ -73,7 +74,7 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
     const min = {};
     this._nextLevel(config, min, '_min');
     return min;
-  },
+  }
 
   /**
    * Takes a configuration Object that was previously minified
@@ -87,7 +88,7 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
     const orig = {};
     this._nextLevel(minifiedConfig, orig, '_max');
     return orig;
-  },
+  }
 
   /**
    * Recursive function, called for every level of the config structure
@@ -133,7 +134,7 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
         to[minKey] = this[translationFn](from[key], this._values);
       }
     }
-  },
+  }
 
   /**
    * Minifies value based on a dictionary
@@ -152,7 +153,7 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
       return `___${value}`;
     }
 
-    const index = lm.utils.indexOf(value, dictionary);
+    const index = dictionary.indexOf(value);
 
     /**
      * value not found in the dictionary, return it unmodified
@@ -165,7 +166,7 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
        */
     }
     return index.toString(36);
-  },
+  }
 
   _max(value, dictionary) {
     /**
@@ -188,5 +189,5 @@ lm.utils.copy(lm.utils.ConfigMinifier.prototype, {
      * value was not minified
      */
     return value;
-  },
-});
+  }
+}

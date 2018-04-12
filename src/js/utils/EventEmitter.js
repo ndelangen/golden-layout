@@ -3,16 +3,27 @@
  * implementation. On top of emitting the
  * actual event it emits an
  *
- * lm.utils.EventEmitter.ALL_EVENT
+ * EventEmitter.ALL_EVENT
  *
  * event for every event triggered. This allows
  * to hook into it and proxy events forwards
  *
- * @constructor
  */
-lm.utils.EventEmitter = function() {
-  this._mSubscriptions = {};
-  this._mSubscriptions[lm.utils.EventEmitter.ALL_EVENT] = [];
+export default class EventEmitter {
+  constructor() {
+    this._mSubscriptions = {};
+    this._mSubscriptions[EventEmitter.ALL_EVENT] = [];
+
+    /**
+     * Alias for unbind
+     */
+    this.off = this.unbind;
+
+    /**
+     * Alias for emit
+     */
+    this.trigger = this.emit;
+  }
 
   /**
    * Listen for events
@@ -23,9 +34,11 @@ lm.utils.EventEmitter = function() {
    *
    * @returns {void}
    */
-  this.on = function(sEvent, fCallback, oContext) {
-    if (!lm.utils.isFunction(fCallback)) {
-      throw new Error(`Tried to listen to event ${sEvent} with non-function callback ${fCallback}`);
+  on(sEvent, fCallback, oContext) {
+    if (!(typeof fCallback === 'function')) {
+      throw new Error(
+        `Tried to listen to event ${sEvent} with non-function callback ${fCallback}`
+      );
     }
 
     if (!this._mSubscriptions[sEvent]) {
@@ -33,7 +46,7 @@ lm.utils.EventEmitter = function() {
     }
 
     this._mSubscriptions[sEvent].push({ fn: fCallback, ctx: oContext });
-  };
+  }
 
   /**
    * Emit an event and notify listeners
@@ -43,7 +56,7 @@ lm.utils.EventEmitter = function() {
    *
    * @returns {void}
    */
-  this.emit = function(sEvent) {
+  emit(sEvent) {
     let i, ctx, args;
 
     args = Array.prototype.slice.call(arguments, 1);
@@ -60,13 +73,13 @@ lm.utils.EventEmitter = function() {
 
     args.unshift(sEvent);
 
-    const allEventSubs = this._mSubscriptions[lm.utils.EventEmitter.ALL_EVENT].slice();
+    const allEventSubs = this._mSubscriptions[EventEmitter.ALL_EVENT].slice();
 
     for (i = 0; i < allEventSubs.length; i++) {
       ctx = allEventSubs[i].ctx || {};
       allEventSubs[i].fn.apply(ctx, args);
     }
-  };
+  }
 
   /**
    * Removes a listener for an event, or all listeners if no callback and context is provided.
@@ -77,7 +90,7 @@ lm.utils.EventEmitter = function() {
    *
    * @returns {void}
    */
-  this.unbind = function(sEvent, fCallback, oContext) {
+  unbind(sEvent, fCallback, oContext) {
     if (!this._mSubscriptions[sEvent]) {
       throw new Error(`No subscribtions to unsubscribe for event ${sEvent}`);
     }
@@ -98,28 +111,18 @@ lm.utils.EventEmitter = function() {
     if (bUnbound === false) {
       throw new Error(`Nothing to unbind for ${sEvent}`);
     }
-  };
-
-  /**
-   * Alias for unbind
-   */
-  this.off = this.unbind;
-
-  /**
-   * Alias for emit
-   */
-  this.trigger = this.emit;
-};
+  }
+}
 
 /**
  * The name of the event that's triggered for every other event
  *
  * usage
  *
- * myEmitter.on( lm.utils.EventEmitter.ALL_EVENT, function( eventName, argsArray ){
- * 	//do stuff
+ * myEmitter.on( EventEmitter.ALL_EVENT, function( eventName, argsArray ){
+ *     //do stuff
  * });
  *
  * @type {String}
  */
-lm.utils.EventEmitter.ALL_EVENT = '__all';
+EventEmitter.ALL_EVENT = '__all';

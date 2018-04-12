@@ -10,9 +10,9 @@ describe("Sets and retrieves a component's state", () => {
         {
           type: 'component',
           componentName: 'testComponent',
-          componentState: { testValue: 'initial' },
-        },
-      ],
+          componentState: { testValue: 'initial' }
+        }
+      ]
     });
 
     myLayout.registerComponent('testComponent', function(container, state) {
@@ -30,7 +30,9 @@ describe("Sets and retrieves a component's state", () => {
 
   test('returns the initial state', () => {
     const config = myLayout.toConfig();
-    expect(config.content[0].content[0].componentState.testValue).toBe('initial');
+    expect(config.content[0].content[0].componentState.testValue).toBe(
+      'initial'
+    );
   });
 
   test('emits stateChanged when a component updates its state', async () => {
@@ -49,7 +51,9 @@ describe("Sets and retrieves a component's state", () => {
 
   test('returns the updated state', () => {
     const config = myLayout.toConfig();
-    expect(config.content[0].content[0].componentState.testValue).toBe('updated');
+    expect(config.content[0].content[0].componentState.testValue).toBe(
+      'updated'
+    );
   });
 
   test('Destroys the layout', () => {

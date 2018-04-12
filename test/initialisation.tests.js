@@ -17,9 +17,9 @@ describe('Can initialise the layoutmanager', async () => {
         {
           type: 'react-component',
           component: 'test-component',
-          props: { label: 'A' },
-        },
-      ],
+          props: { label: 'A' }
+        }
+      ]
     });
     myLayout.registerComponent('test-component', TestComponent);
 

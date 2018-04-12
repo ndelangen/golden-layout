@@ -1,46 +1,48 @@
-lm.utils.DragListener = function(eElement, nButtonCode) {
-  lm.utils.EventEmitter.call(this);
+import EventEmitter from './EventEmitter';
 
-  this._eElement = $(eElement);
-  this._oDocument = $(document);
-  this._eBody = $(document.body);
-  this._nButtonCode = nButtonCode || 0;
+import $ from 'jquery';
 
-  /**
-   * The delay after which to start the drag in milliseconds
-   */
-  this._nDelay = 200;
+export default class DragListener extends EventEmitter {
+  constructor(eElement, nButtonCode) {
+    super();
 
-  /**
-   * The distance the mouse needs to be moved to qualify as a drag
-   */
-  this._nDistance = 10; // TODO - works better with delay only
+    this._eElement = $(eElement);
+    this._oDocument = $(document);
+    this._eBody = $(document.body);
+    this._nButtonCode = nButtonCode || 0;
 
-  this._nX = 0;
-  this._nY = 0;
+    /**
+     * The delay after which to start the drag in milliseconds
+     */
+    this._nDelay = 200;
 
-  this._nOriginalX = 0;
-  this._nOriginalY = 0;
+    /**
+     * The distance the mouse needs to be moved to qualify as a drag
+     */
+    this._nDistance = 10; // TODO - works better with delay only
 
-  this._bDragging = false;
+    this._nX = 0;
+    this._nY = 0;
 
-  this._fMove = lm.utils.fnBind(this.onMouseMove, this);
-  this._fUp = lm.utils.fnBind(this.onMouseUp, this);
-  this._fDown = lm.utils.fnBind(this.onMouseDown, this);
+    this._nOriginalX = 0;
+    this._nOriginalY = 0;
 
-  this._eElement.on('mousedown touchstart', this._fDown);
-};
+    this._bDragging = false;
 
-lm.utils.DragListener.timeout = null;
+    this._fMove = this.onMouseMove.bind(this);
+    this._fUp = this.onMouseUp.bind(this);
+    this._fDown = this.onMouseDown.bind(this);
 
-lm.utils.copy(lm.utils.DragListener.prototype, {
+    this._eElement.on('mousedown touchstart', this._fDown);
+  }
+
   destroy() {
     this._eElement.unbind('mousedown touchstart', this._fDown);
     this._oDocument.unbind('mouseup touchend', this._fUp);
     this._eElement = null;
     this._oDocument = null;
     this._eBody = null;
-  },
+  }
 
   onMouseDown(oEvent) {
     oEvent.preventDefault();
@@ -54,9 +56,9 @@ lm.utils.copy(lm.utils.DragListener.prototype, {
       this._oDocument.on('mousemove touchmove', this._fMove);
       this._oDocument.one('mouseup touchend', this._fUp);
 
-      this._timeout = setTimeout(lm.utils.fnBind(this._startDrag, this), this._nDelay);
+      this._timeout = setTimeout(this._startDrag.bind(this), this._nDelay);
     }
-  },
+  }
 
   onMouseMove(oEvent) {
     if (this._timeout != null) {
@@ -68,7 +70,10 @@ lm.utils.copy(lm.utils.DragListener.prototype, {
       this._nY = coordinates.y - this._nOriginalY;
 
       if (this._bDragging === false) {
-        if (Math.abs(this._nX) > this._nDistance || Math.abs(this._nY) > this._nDistance) {
+        if (
+          Math.abs(this._nX) > this._nDistance ||
+          Math.abs(this._nY) > this._nDistance
+        ) {
           clearTimeout(this._timeout);
           this._startDrag();
         }
@@ -78,7 +83,7 @@ lm.utils.copy(lm.utils.DragListener.prototype, {
         this.emit('drag', this._nX, this._nY, oEvent);
       }
     }
-  },
+  }
 
   onMouseUp(oEvent) {
     if (this._timeout != null) {
@@ -94,7 +99,7 @@ lm.utils.copy(lm.utils.DragListener.prototype, {
         this.emit('dragStop', oEvent, this._nOriginalX + this._nX);
       }
     }
-  },
+  }
 
   _startDrag() {
     this._bDragging = true;
@@ -102,14 +107,18 @@ lm.utils.copy(lm.utils.DragListener.prototype, {
     this._eElement.addClass('lm_dragging');
     this._oDocument.find('iframe').css('pointer-events', 'none');
     this.emit('dragStart', this._nOriginalX, this._nOriginalY);
-  },
+  }
 
   _getCoordinates(event) {
     event =
-      event.originalEvent && event.originalEvent.touches ? event.originalEvent.touches[0] : event;
+      event.originalEvent && event.originalEvent.touches
+        ? event.originalEvent.touches[0]
+        : event;
     return {
       x: event.pageX,
-      y: event.pageY,
+      y: event.pageY
     };
-  },
-});
+  }
+}
+
+DragListener.timeout = null;

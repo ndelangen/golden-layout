@@ -13,16 +13,16 @@ describe('it can popout components into browserwindows', () => {
             {
               type: 'component',
               componentName: 'testComponent',
-              id: 'componentA',
+              id: 'componentA'
             },
             {
               type: 'component',
               componentName: 'testComponent',
-              id: 'componentB',
-            },
-          ],
-        },
-      ],
+              id: 'componentB'
+            }
+          ]
+        }
+      ]
     });
 
     expect(layout.isInitialised).toBe(true);
@@ -63,7 +63,9 @@ describe('it can popout components into browserwindows', () => {
   xit('closes the open window', async () => {
     browserPopout.close();
 
-    await waitsFor(() => browserPopout.getWindow().closed && layout.openPopouts.length === 0);
+    await waitsFor(
+      () => browserPopout.getWindow().closed && layout.openPopouts.length === 0
+    );
   });
 
   test('destroys the layout', () => {

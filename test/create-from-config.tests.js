@@ -19,9 +19,9 @@ describe('Creates the right structure based on the provided config', async () =>
         {
           type: 'react-component',
           component: 'test-component',
-          props: { label: 'A' },
-        },
-      ],
+          props: { label: 'A' }
+        }
+      ]
     });
 
     await waitsFor(() => layout.isInitialised);
@@ -44,11 +44,11 @@ describe('Creates the right structure based on the provided config', async () =>
             {
               type: 'react-component',
               component: 'test-component',
-              props: { label: 'A' },
-            },
-          ],
-        },
-      ],
+              props: { label: 'A' }
+            }
+          ]
+        }
+      ]
     });
 
     await waitsFor(() => layout.isInitialised);
@@ -71,16 +71,16 @@ describe('Creates the right structure based on the provided config', async () =>
             {
               type: 'react-component',
               component: 'test-component',
-              props: { label: 'A' },
+              props: { label: 'A' }
             },
             {
               type: 'react-component',
               component: 'test-component',
-              props: { label: 'A' },
-            },
-          ],
-        },
-      ],
+              props: { label: 'A' }
+            }
+          ]
+        }
+      ]
     });
 
     await waitsFor(() => layout.isInitialised);
@@ -91,8 +91,12 @@ describe('Creates the right structure based on the provided config', async () =>
     expect(layout.root.contentItems[0].contentItems[0].isStack).toBe(true);
     expect(layout.root.contentItems[0].contentItems[1].isStack).toBe(true);
     expect(layout.root.contentItems[0].contentItems).toHaveLength(2);
-    expect(layout.root.contentItems[0].contentItems[0].contentItems[0].isComponent).toBe(true);
-    expect(layout.root.contentItems[0].contentItems[1].contentItems[0].isComponent).toBe(true);
+    expect(
+      layout.root.contentItems[0].contentItems[0].contentItems[0].isComponent
+    ).toBe(true);
+    expect(
+      layout.root.contentItems[0].contentItems[1].contentItems[0].isComponent
+    ).toBe(true);
 
     layout.destroy();
   });
@@ -109,13 +113,13 @@ describe('Creates the right structure based on the provided config', async () =>
                 {
                   type: 'react-component',
                   component: 'test-component',
-                  props: { label: 'A' },
-                },
-              ],
-            },
-          ],
-        },
-      ],
+                  props: { label: 'A' }
+                }
+              ]
+            }
+          ]
+        }
+      ]
     });
 
     await waitsFor(() => layout.isInitialised);
@@ -128,14 +132,19 @@ describe('Creates the right structure based on the provided config', async () =>
     expect(layout.root.contentItems[0].contentItems).toHaveLength(1);
     expect(layout.root.contentItems[0].contentItems[0].isColumn).toBe(true);
 
-    expect(layout.root.contentItems[0].contentItems[0].contentItems).toHaveLength(1);
-    expect(layout.root.contentItems[0].contentItems[0].contentItems[0].isStack).toBe(true);
-
-    expect(layout.root.contentItems[0].contentItems[0].contentItems[0].contentItems).toHaveLength(
-      1
-    );
     expect(
-      layout.root.contentItems[0].contentItems[0].contentItems[0].contentItems[0].isComponent
+      layout.root.contentItems[0].contentItems[0].contentItems
+    ).toHaveLength(1);
+    expect(
+      layout.root.contentItems[0].contentItems[0].contentItems[0].isStack
+    ).toBe(true);
+
+    expect(
+      layout.root.contentItems[0].contentItems[0].contentItems[0].contentItems
+    ).toHaveLength(1);
+    expect(
+      layout.root.contentItems[0].contentItems[0].contentItems[0]
+        .contentItems[0].isComponent
     ).toBe(true);
 
     layout.destroy();

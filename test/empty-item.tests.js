@@ -12,21 +12,21 @@ describe('The layout can handle empty stacks', () => {
             {
               type: 'component',
               componentName: 'testComponent',
-              componentState: { text: 'Component 1' },
+              componentState: { text: 'Component 1' }
             },
             {
               type: 'component',
               componentName: 'testComponent',
-              componentState: { text: 'Component 2' },
+              componentState: { text: 'Component 2' }
             },
             {
               isClosable: false,
               type: 'stack',
-              content: [],
-            },
-          ],
-        },
-      ],
+              content: []
+            }
+          ]
+        }
+      ]
     });
   });
 
@@ -36,7 +36,7 @@ describe('The layout can handle empty stacks', () => {
 
     row.addChild({
       type: 'component',
-      componentName: 'testComponent',
+      componentName: 'testComponent'
     });
   });
 
@@ -47,7 +47,7 @@ describe('The layout can handle empty stacks', () => {
 
     stack.addChild({
       type: 'component',
-      componentName: 'testComponent',
+      componentName: 'testComponent'
     });
 
     expect(stack.contentItems).toHaveLength(1);

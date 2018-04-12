@@ -15,19 +15,23 @@ describe('content items are abled to to emit events that bubble up the tree', ()
               content: [
                 {
                   type: 'component',
-                  componentName: 'testComponent',
-                },
-              ],
+                  componentName: 'testComponent'
+                }
+              ]
             },
             {
-              type: 'row',
-            },
-          ],
-        },
-      ],
+              type: 'row'
+            }
+          ]
+        }
+      ]
     });
 
-    await testTools.verifyPath('stack.0.column.0.stack.0.component', layout, expect);
+    await testTools.verifyPath(
+      'stack.0.column.0.stack.0.component',
+      layout,
+      expect
+    );
     await testTools.verifyPath('stack.1.row', layout, expect);
   });
 
@@ -43,9 +47,12 @@ describe('content items are abled to to emit events that bubble up the tree', ()
       }
     );
 
-    layout.root.contentItems[0].contentItems[0].contentItems[0].on(eventName, () => {
-      invocations.push('stackBottom');
-    });
+    layout.root.contentItems[0].contentItems[0].contentItems[0].on(
+      eventName,
+      () => {
+        invocations.push('stackBottom');
+      }
+    );
 
     layout.root.contentItems[0].contentItems[0].on(eventName, () => {
       invocations.push('column');
@@ -93,9 +100,12 @@ describe('content items are abled to to emit events that bubble up the tree', ()
       }
     );
 
-    layout.root.contentItems[0].contentItems[0].contentItems[0].on(eventName, () => {
-      invocations.push('stackBottom');
-    });
+    layout.root.contentItems[0].contentItems[0].contentItems[0].on(
+      eventName,
+      () => {
+        invocations.push('stackBottom');
+      }
+    );
 
     layout.root.contentItems[0].contentItems[0].on(eventName, event => {
       event.stopPropagation();

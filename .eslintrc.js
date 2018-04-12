@@ -8,15 +8,15 @@ module.exports = {
   plugins: ['prettier', 'jest', 'react', 'json'],
   parser: 'babel-eslint',
   parserOptions: {
-    sourceType: 'module',
+    sourceType: 'module'
   },
   env: {
     es6: true,
-    node: true,
-    'jest/globals': true,
+    browser: true,
+    'jest/globals': true
   },
   settings: {
-    'import/core-modules': ['enzyme'],
+    'import/core-modules': ['enzyme']
   },
   rules: {
     strict: [error, 'never'],
@@ -27,8 +27,8 @@ module.exports = {
         tabWidth: 2,
         bracketSpacing: true,
         trailingComma: 'es5',
-        singleQuote: true,
-      },
+        singleQuote: true
+      }
     ],
     'no-debugger': process.env.NODE_ENV === 'production' ? error : ignore,
     quotes: [warn, 'single', { avoidEscape: true }],
@@ -40,8 +40,8 @@ module.exports = {
       error,
       {
         js: 'never',
-        json: 'always',
-      },
+        json: 'always'
+      }
     ],
     'import/no-extraneous-dependencies': [
       error,
@@ -53,10 +53,10 @@ module.exports = {
           '**/*.test.js',
           '**/scripts/*.js',
           '**/docs/**/*.js',
-          '**/__tests__/**/*.js',
+          '**/__tests__/**/*.js'
         ],
-        peerDependencies: true,
-      },
+        peerDependencies: true
+      }
     ],
     'import/prefer-default-export': ignore,
     'react/jsx-wrap-multilines': ignore,
@@ -70,14 +70,14 @@ module.exports = {
     'react/jsx-filename-extension': [
       warn,
       {
-        extensions: ['.js', '.jsx'],
-      },
+        extensions: ['.js', '.jsx']
+      }
     ],
     'jsx-a11y/accessible-emoji': ignore,
     'jsx-a11y/href-no-hash': ignore,
     'jsx-a11y/label-has-for': ignore,
     'jsx-a11y/click-events-have-key-events': error,
     'jsx-a11y/anchor-is-valid': [warn, { aspects: ['invalidHref'] }],
-    'react/no-unescaped-entities': ignore,
-  },
+    'react/no-unescaped-entities': ignore
+  }
 };

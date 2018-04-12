@@ -12,12 +12,14 @@ describe('supports drag creation', () => {
           content: [
             {
               type: 'component',
-              componentState: { html: '<div id="dragsource"></div>' },
-              componentName: 'testComponent',
-            },
-          ],
-        },
-      ],
+              componentState: {
+                html: '<div id="dragsource"></div>'
+              },
+              componentName: 'testComponent'
+            }
+          ]
+        }
+      ]
     });
 
     expect(layout.isInitialised).toBe(true);
@@ -30,7 +32,7 @@ describe('supports drag creation', () => {
     layout.createDragSource(dragSrc, {
       type: 'component',
       componentState: { html: '<div class="dragged"></div>' },
-      componentName: 'testComponent',
+      componentName: 'testComponent'
     });
   });
 

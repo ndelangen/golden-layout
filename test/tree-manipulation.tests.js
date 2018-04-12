@@ -8,9 +8,9 @@ describe('The layout can be manipulated at runtime', () => {
       content: [
         {
           type: 'component',
-          componentName: 'testComponent',
-        },
-      ],
+          componentName: 'testComponent'
+        }
+      ]
     });
   });
 
@@ -21,7 +21,7 @@ describe('The layout can be manipulated at runtime', () => {
   test('adds a child to the stack', () => {
     myLayout.root.contentItems[0].addChild({
       type: 'component',
-      componentName: 'testComponent',
+      componentName: 'testComponent'
     });
 
     expect(myLayout.root.contentItems[0].contentItems).toHaveLength(2);
@@ -35,13 +35,13 @@ describe('The layout can be manipulated at runtime', () => {
       content: [
         {
           type: 'component',
-          componentName: 'testComponent',
+          componentName: 'testComponent'
         },
         {
           type: 'component',
-          componentName: 'testComponent',
-        },
-      ],
+          componentName: 'testComponent'
+        }
+      ]
     };
 
     myLayout.root.contentItems[0].replaceChild(oldChild, newChild);
@@ -51,7 +51,11 @@ describe('The layout can be manipulated at runtime', () => {
   });
 
   test('Has setup parents correctly', () => {
-    const component = testTools.verifyPath('stack.1.row.1.stack.0.component', myLayout, expect);
+    const component = testTools.verifyPath(
+      'stack.1.row.1.stack.0.component',
+      myLayout,
+      expect
+    );
     expect(component.isComponent).toBe(true);
     expect(component.parent.isStack).toBe(true);
     expect(component.parent.parent.isRow).toBe(true);

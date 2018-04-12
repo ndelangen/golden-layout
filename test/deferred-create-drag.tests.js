@@ -13,12 +13,14 @@ describe('supports drag creation with deferred content', () => {
           content: [
             {
               type: 'component',
-              componentState: { html: '<div id="dragsource"></div>' },
-              componentName: 'testComponent',
-            },
-          ],
-        },
-      ],
+              componentState: {
+                html: '<div id="dragsource"></div>'
+              },
+              componentName: 'testComponent'
+            }
+          ]
+        }
+      ]
     });
 
     expect(layout.isInitialised).toBe(true);
@@ -31,7 +33,7 @@ describe('supports drag creation with deferred content', () => {
     layout.createDragSource(dragSrc, () => ({
       type: 'component',
       componentState: { html: '<div class="dragged"></div>' },
-      componentName: 'testComponent',
+      componentName: 'testComponent'
     }));
   });
 

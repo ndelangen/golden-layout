@@ -48,7 +48,11 @@ describe('the EventEmitter works', () => {
 
     expect(myListener.callback).toHaveBeenCalledWith('Good', 'Morning');
     expect(myListener.callback.mock.calls).toHaveLength(1);
-    expect(myListener.allCallback).toHaveBeenCalledWith('someEvent', 'Good', 'Morning');
+    expect(myListener.allCallback).toHaveBeenCalledWith(
+      'someEvent',
+      'Good',
+      'Morning'
+    );
     expect(myListener.allCallback.mock.calls).toHaveLength(1);
 
     myObject.emit('someOtherEvent', 123);
@@ -64,7 +68,7 @@ describe('the EventEmitter works', () => {
     const myListener = {
       callback() {
         context = this;
-      },
+      }
     };
 
     myObject.on('someEvent', myListener.callback, { some: 'thing' });

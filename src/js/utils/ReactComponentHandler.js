@@ -1,23 +1,27 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 /**
  * A specialised GoldenLayout component that binds GoldenLayout container
  * lifecycle events to react components
  *
- * @constructor
- *
- * @param {lm.container.ItemContainer} container
- * @param {Object} state state is not required for react components
  */
-lm.utils.ReactComponentHandler = function(container, state) {
-  this._reactComponent = null;
-  this._originalComponentWillUpdate = null;
-  this._container = container;
-  this._initialState = state;
-  this._reactClass = this._getReactClass();
-  this._container.on('open', this._render, this);
-  this._container.on('destroy', this._destroy, this);
-};
+export default class ReactComponentHandler {
+  /**
+   *
+   * @param {ItemContainer} container
+   * @param {Object} state state is not required for react components
+   */
+  constructor(container, state) {
+    this._reactComponent = null;
+    this._originalComponentWillUpdate = null;
+    this._container = container;
+    this._initialState = state;
+    this._reactClass = this._getReactClass();
+    this._container.on('open', this._render, this);
+    this._container.on('destroy', this._destroy, this);
+  }
 
-lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
   /**
    * Creates the react class and component and hydrates it with
    * the initial state - if one is present
@@ -29,7 +33,7 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
    */
   _render() {
     ReactDOM.render(this._getReactComponent(), this._container.getElement()[0]);
-  },
+  }
 
   /**
    * Fired by react when the component is created.
@@ -47,13 +51,14 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
 
     // stateless components will have nothing to copy
     if (this._reactComponent) {
-      this._originalComponentWillUpdate = this._reactComponent.componentWillUpdate || function() {};
+      this._originalComponentWillUpdate =
+        this._reactComponent.componentWillUpdate || function() {};
       this._reactComponent.componentWillUpdate = this._onUpdate.bind(this);
       if (this._container.getState()) {
         this._reactComponent.setState(this._container.getState());
       }
     }
-  },
+  }
 
   /**
    * Removes the component from the DOM and thus invokes React's unmount lifecycle
@@ -65,7 +70,7 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
     ReactDOM.unmountComponentAtNode(this._container.getElement()[0]);
     this._container.off('open', this._render, this);
     this._container.off('destroy', this._destroy, this);
-  },
+  }
 
   /**
    * Hooks into React's state management and applies the componentstate
@@ -76,8 +81,12 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
    */
   _onUpdate(nextProps, nextState) {
     this._container.setState(nextState);
-    this._originalComponentWillUpdate.call(this._reactComponent, nextProps, nextState);
-  },
+    this._originalComponentWillUpdate.call(
+      this._reactComponent,
+      nextProps,
+      nextState
+    );
+  }
 
   /**
    * Retrieves the react class from GoldenLayout's registry
@@ -90,7 +99,9 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
     let reactClass;
 
     if (!componentName) {
-      throw new Error('No react component name. type: react-component needs a field `component`');
+      throw new Error(
+        'No react component name. type: react-component needs a field `component`'
+      );
     }
 
     reactClass = this._container.layoutManager.getComponent(componentName);
@@ -103,7 +114,7 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
     }
 
     return reactClass;
-  },
+  }
 
   /**
    * Copies and extends the properties array and returns the React element
@@ -115,9 +126,9 @@ lm.utils.copy(lm.utils.ReactComponentHandler.prototype, {
     const defaultProps = {
       glEventHub: this._container.layoutManager.eventHub,
       glContainer: this._container,
-      ref: this._gotReactComponent.bind(this),
+      ref: this._gotReactComponent.bind(this)
     };
-    const props = $.extend(defaultProps, this._container._config.props);
+    const props = Object.assign(defaultProps, this._container._config.props);
     return React.createElement(this._reactClass, props);
-  },
-});
+  }
+}

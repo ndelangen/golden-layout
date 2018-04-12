@@ -8,8 +8,8 @@ describe('It creates and extends config segments correctly', () => {
 
     const myConfig = createConfig({
       dimensions: {
-        borderWidth: 10,
-      },
+        borderWidth: 10
+      }
     });
 
     expect(myConfig).not.toEqual(createConfig({}));

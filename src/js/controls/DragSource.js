@@ -1,23 +1,26 @@
+import DragListener from '../utils/DragListener';
+import DragProxy from './DragProxy';
 /**
  * Allows for any DOM item to create a component on drag
  * start tobe dragged into the Layout
- *
- * @param {jQuery element} element
- * @param {Object} itemConfig the configuration for the contentItem that will be created
- * @param {LayoutManager} layoutManager
- *
- * @constructor
  */
-lm.controls.DragSource = function(element, itemConfig, layoutManager) {
-  this._element = element;
-  this._itemConfig = itemConfig;
-  this._layoutManager = layoutManager;
-  this._dragListener = null;
+export default class DragSource {
+  /**
+   *
+   * @param {jQuery element} element
+   * @param {Object} itemConfig the configuration for the contentItem that will be created
+   * @param {LayoutManager} layoutManager
+   *
+   */
+  constructor(element, itemConfig, layoutManager) {
+    this._element = element;
+    this._itemConfig = itemConfig;
+    this._layoutManager = layoutManager;
+    this._dragListener = null;
 
-  this._createDragListener();
-};
+    this._createDragListener();
+  }
 
-lm.utils.copy(lm.controls.DragSource.prototype, {
   /**
    * Called initially and after every drag
    *
@@ -28,10 +31,10 @@ lm.utils.copy(lm.controls.DragSource.prototype, {
       this._dragListener.destroy();
     }
 
-    this._dragListener = new lm.utils.DragListener(this._element);
+    this._dragListener = new DragListener(this._element);
     this._dragListener.on('dragStart', this._onDragStart, this);
     this._dragListener.on('dragStop', this._createDragListener, this);
-  },
+  }
 
   /**
    * Callback for the DragListener's dragStart event
@@ -43,11 +46,13 @@ lm.utils.copy(lm.controls.DragSource.prototype, {
    */
   _onDragStart(x, y) {
     let itemConfig = this._itemConfig;
-    if (lm.utils.isFunction(itemConfig)) {
+    if (typeof itemConfig === 'function') {
       itemConfig = itemConfig();
     }
-    let contentItem = this._layoutManager._$normalizeContentItem($.extend(true, {}, itemConfig)),
-      dragProxy = new lm.controls.DragProxy(
+    let contentItem = this._layoutManager._$normalizeContentItem(
+        Object.assign({}, itemConfig)
+      ),
+      dragProxy = new DragProxy(
         x,
         y,
         this._dragListener,
@@ -56,6 +61,9 @@ lm.utils.copy(lm.controls.DragSource.prototype, {
         null
       );
 
-    this._layoutManager.transitionIndicator.transitionElements(this._element, dragProxy.element);
-  },
-});
+    this._layoutManager.transitionIndicator.transitionElements(
+      this._element,
+      dragProxy.element
+    );
+  }
+}

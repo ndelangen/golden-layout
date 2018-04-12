@@ -51,7 +51,7 @@ describe('Can minify and unminify configuration objects', () => {
 
   var testConfig = {
     dimensions: {
-      borderWidth: 5,
+      borderWidth: 5
     },
 
     content: [
@@ -65,7 +65,9 @@ describe('Can minify and unminify configuration objects', () => {
               {
                 type: 'component',
                 componentName: 'watchlist',
-                componentState: { instruments: ['MSFT', 'GOOG', 'AAPL'] },
+                componentState: {
+                  instruments: ['MSFT', 'GOOG', 'AAPL']
+                }
               },
               {
                 isClosable: false,
@@ -73,13 +75,13 @@ describe('Can minify and unminify configuration objects', () => {
                 content: [
                   {
                     type: 'component',
-                    componentName: 'research',
+                    componentName: 'research'
                   },
                   {
                     type: 'component',
-                    componentName: 'research',
-                  },
-                ],
+                    componentName: 'research'
+                  }
+                ]
               },
               {
                 type: 'stack',
@@ -87,22 +89,22 @@ describe('Can minify and unminify configuration objects', () => {
                   {
                     type: 'component',
                     componentName: 'research',
-                    componentState: { index: 1 },
+                    componentState: { index: 1 }
                   },
                   {
                     isClosable: false,
                     type: 'component',
                     componentName: 'research',
-                    componentState: { index: 2 },
+                    componentState: { index: 2 }
                   },
                   {
                     type: 'component',
                     componentName: 'research',
-                    componentState: { index: 3 },
-                  },
-                ],
-              },
-            ],
+                    componentState: { index: 3 }
+                  }
+                ]
+              }
+            ]
           },
           {
             width: 20,
@@ -112,17 +114,17 @@ describe('Can minify and unminify configuration objects', () => {
                 height: 30,
                 type: 'component',
                 componentName: 'commentary',
-                componentState: { feedTopic: 'us-bluechips' },
+                componentState: { feedTopic: 'us-bluechips' }
               },
               {
                 type: 'component',
                 componentName: 'commentary',
-                componentState: { feedTopic: 'lse' },
-              },
-            ],
-          },
-        ],
-      },
-    ],
+                componentState: { feedTopic: 'lse' }
+              }
+            ]
+          }
+        ]
+      }
+    ]
   };
 });

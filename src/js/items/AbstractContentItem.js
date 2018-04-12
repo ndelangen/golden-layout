@@ -1,12 +1,18 @@
+import EventEmitter from '../utils/EventEmitter';
+import BubblingEvent from '../utils/BubblingEvent';
+import * as utils from '../utils/utils';
+import ConfigurationError from '../errors/ConfigurationError';
+import itemDefaultConfig from '../config/itemDefaultConfig';
+
 /**
  * This is the baseclass that all content items inherit from.
  * Most methods provide a subset of what the sub-classes do.
  *
  * It also provides a number of functions for tree traversal
  *
- * @param {lm.LayoutManager} layoutManager
+ * @param {LayoutManager} layoutManager
  * @param {item node configuration} config
- * @param {lm.item} parent
+ * @param {item} parent
  *
  * @event stateChanged
  * @event beforeItemDestroyed
@@ -17,36 +23,36 @@
  * @event columnCreated
  * @event stackCreated
  *
- * @constructor
+ * @abstract
  */
-lm.items.AbstractContentItem = function(layoutManager, config, parent) {
-  lm.utils.EventEmitter.call(this);
+export default class AbstractContentItem extends EventEmitter {
+  constructor(layoutManager, config, parent) {
+    super();
 
-  this.config = this._extendItemNode(config);
-  this.type = config.type;
-  this.contentItems = [];
-  this.parent = parent;
+    this.config = this._extendItemNode(config);
+    this.type = config.type;
+    this.contentItems = [];
+    this.parent = parent;
 
-  this.isInitialised = false;
-  this.isMaximised = false;
-  this.isRoot = false;
-  this.isRow = false;
-  this.isColumn = false;
-  this.isStack = false;
-  this.isComponent = false;
+    this.isInitialised = false;
+    this.isMaximised = false;
+    this.isRoot = false;
+    this.isRow = false;
+    this.isColumn = false;
+    this.isStack = false;
+    this.isComponent = false;
 
-  this.layoutManager = layoutManager;
-  this._pendingEventPropagations = {};
-  this._throttledEvents = ['stateChanged'];
+    this.layoutManager = layoutManager;
+    this._pendingEventPropagations = {};
+    this._throttledEvents = ['stateChanged'];
 
-  this.on(lm.utils.EventEmitter.ALL_EVENT, this._propagateEvent, this);
+    this.on(EventEmitter.ALL_EVENT, this._propagateEvent, this);
 
-  if (config.content) {
-    this._createContentItems(config);
+    if (config.content) {
+      this._createContentItems(config);
+    }
   }
-};
 
-lm.utils.copy(lm.items.AbstractContentItem.prototype, {
   /**
    * Set the size of the component and its children, called recursively
    *
@@ -55,7 +61,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
    */
   setSize() {
     throw new Error('Abstract Method');
-  },
+  }
 
   /**
    * Calls a method recursively downwards on the tree
@@ -74,29 +80,33 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
       this[functionName].apply(this, functionArguments || []);
     }
     for (i = 0; i < this.contentItems.length; i++) {
-      this.contentItems[i].callDownwards(functionName, functionArguments, bottomUp);
+      this.contentItems[i].callDownwards(
+        functionName,
+        functionArguments,
+        bottomUp
+      );
     }
     if (bottomUp === true && skipSelf !== true) {
       this[functionName].apply(this, functionArguments || []);
     }
-  },
+  }
 
   /**
    * Removes a child node (and its children) from the tree
    *
-   * @param   {lm.items.ContentItem} contentItem
+   * @param   {ContentItem} contentItem
    *
    * @returns {void}
    */
   removeChild(contentItem, keepChild) {
     /*
-		 * Get the position of the item that's to be removed within all content items this node contains
-		 */
-    const index = lm.utils.indexOf(contentItem, this.contentItems);
+         * Get the position of the item that's to be removed within all content items this node contains
+         */
+    const index = this.contentItems.indexOf(contentItem);
 
     /*
-		 * Make sure the content item to be removed is actually a child of this item
-		 */
+         * Make sure the content item to be removed is actually a child of this item
+         */
     if (index === -1) {
       throw new Error("Can't remove child item. Unknown content item");
     }
@@ -127,17 +137,17 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
       /**
        * If this was the last content item, remove this node as well
        */
-    } else if (!(this instanceof lm.items.Root) && this.config.isClosable === true) {
+    } else if (!this.isRoot && this.config.isClosable === true) {
       this.parent.removeChild(this);
     }
-  },
+  }
 
   /**
    * Sets up the tree structure for the newly added child
    * The responsibility for the actual DOM manipulations lies
    * with the concrete item
    *
-   * @param {lm.items.AbstractContentItem} contentItem
+   * @param {AbstractContentItem} contentItem
    * @param {[Int]} index If omitted item will be appended
    */
   addChild(contentItem, index) {
@@ -154,24 +164,27 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     this.config.content.splice(index, 0, contentItem.config);
     contentItem.parent = this;
 
-    if (contentItem.parent.isInitialised === true && contentItem.isInitialised === false) {
+    if (
+      contentItem.parent.isInitialised === true &&
+      contentItem.isInitialised === false
+    ) {
       contentItem._$init();
     }
-  },
+  }
 
   /**
    * Replaces oldChild with newChild. This used to use jQuery.replaceWith... which for
    * some reason removes all event listeners, so isn't really an option.
    *
-   * @param   {lm.item.AbstractContentItem} oldChild
-   * @param   {lm.item.AbstractContentItem} newChild
+   * @param   {AbstractContentItem} oldChild
+   * @param   {AbstractContentItem} newChild
    *
    * @returns {void}
    */
   replaceChild(oldChild, newChild, _$destroyOldChild) {
     newChild = this.layoutManager._$normalizeContentItem(newChild);
 
-    let index = lm.utils.indexOf(oldChild, this.contentItems),
+    let index = this.contentItems.indexOf(oldChild),
       parentNode = oldChild.element[0].parentNode;
 
     if (index === -1) {
@@ -181,55 +194,58 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     parentNode.replaceChild(newChild.element[0], oldChild.element[0]);
 
     /*
-		 * Optionally destroy the old content item
-		 */
+         * Optionally destroy the old content item
+         */
     if (_$destroyOldChild === true) {
       oldChild.parent = null;
       oldChild._$destroy();
     }
 
     /*
-		 * Wire the new contentItem into the tree
-		 */
+         * Wire the new contentItem into the tree
+         */
     this.contentItems[index] = newChild;
     newChild.parent = this;
 
     /*
-		 * Update tab reference
-		 */
+         * Update tab reference
+         */
     if (this.isStack) {
       this.header.tabs[index].contentItem = newChild;
     }
 
     // TODO This doesn't update the config... refactor to leave item nodes untouched after creation
-    if (newChild.parent.isInitialised === true && newChild.isInitialised === false) {
+    if (
+      newChild.parent.isInitialised === true &&
+      newChild.isInitialised === false
+    ) {
       newChild._$init();
     }
 
     this.callDownwards('setSize');
-  },
+  }
 
   /**
    * Convenience method.
-   * Shorthand for this.parent.removeChild( this )
+   * Shorthand for this.parent.removeChild(this)
    *
    * @returns {void}
    */
   remove() {
     this.parent.removeChild(this);
-  },
+  }
 
   /**
    * Removes the component from the layout and creates a new
    * browser window with the component and its children inside
    *
-   * @returns {lm.controls.BrowserPopout}
+   * @returns {BrowserPopout}
    */
   popout() {
     const browserPopout = this.layoutManager.createPopout(this);
     this.emitBubblingEvent('stateChanged');
     return browserPopout;
-  },
+  }
 
   /**
    * Maximises the Item or minimises it if it is already maximised
@@ -246,7 +262,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
 
     this.isMaximised = !this.isMaximised;
     this.emitBubblingEvent('stateChanged');
-  },
+  }
 
   /**
    * Selects the item if it is not already selected
@@ -258,7 +274,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
       this.layoutManager.selectItem(this, true);
       this.element.addClass('lm_selected');
     }
-  },
+  }
 
   /**
    * De-selects the item if it is selected
@@ -270,7 +286,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
       this.layoutManager.selectedItem = null;
       this.element.removeClass('lm_selected');
     }
-  },
+  }
 
   /**
    * Set this component's title
@@ -284,7 +300,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     this.config.title = title;
     this.emit('titleChanged', title);
     this.emit('stateChanged');
-  },
+  }
 
   /**
    * Checks whether a provided id is present
@@ -300,9 +316,9 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     } else if (typeof this.config.id === 'string') {
       return this.config.id === id;
     } else if (this.config.id instanceof Array) {
-      return lm.utils.indexOf(id, this.config.id) !== -1;
+      return this.config.id(id) !== -1;
     }
-  },
+  }
 
   /**
    * Adds an id. Adds it as a string if the component doesn't
@@ -325,7 +341,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     } else if (this.config.id instanceof Array) {
       this.config.id.push(id);
     }
-  },
+  }
 
   /**
    * Removes an existing id. Throws an error
@@ -344,10 +360,10 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     if (typeof this.config.id === 'string') {
       delete this.config.id;
     } else if (this.config.id instanceof Array) {
-      const index = lm.utils.indexOf(id, this.config.id);
+      const index = this.config.id(id);
       this.config.id.splice(index, 1);
     }
-  },
+  }
 
   /** **************************************
    * SELECTOR
@@ -366,20 +382,20 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
 
     next(this);
     return result;
-  },
+  }
 
   getItemsById(id) {
     return this.getItemsByFilter(item => {
       if (item.config.id instanceof Array) {
-        return lm.utils.indexOf(id, item.config.id) !== -1;
+        return item.config.id.indexOf(id) !== -1;
       }
       return item.config.id === id;
     });
-  },
+  }
 
   getItemsByType(type) {
     return this._$getItemsByProperty('type', type);
-  },
+  }
 
   getComponentsByName(componentName) {
     let components = this._$getItemsByProperty('componentName', componentName),
@@ -391,38 +407,38 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     }
 
     return instances;
-  },
+  }
 
   /** **************************************
    * PACKAGE PRIVATE
    *************************************** */
   _$getItemsByProperty(key, value) {
     return this.getItemsByFilter(item => item[key] === value);
-  },
+  }
 
   _$setParent(parent) {
     this.parent = parent;
-  },
+  }
 
   _$highlightDropZone(x, y, area) {
     this.layoutManager.dropTargetIndicator.highlightArea(area);
-  },
+  }
 
   _$onDrop(contentItem) {
     this.addChild(contentItem);
-  },
+  }
 
   _$hide() {
     this._callOnActiveComponents('hide');
     this.element.hide();
     this.layoutManager.updateSize();
-  },
+  }
 
   _$show() {
     this._callOnActiveComponents('show');
     this.element.show();
     this.layoutManager.updateSize();
-  },
+  }
 
   _callOnActiveComponents(methodName) {
     let stacks = this.getItemsByType('stack'),
@@ -436,7 +452,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
         activeContentItem.container[methodName]();
       }
     }
-  },
+  }
 
   /**
    * Destroys this item ands its children
@@ -448,17 +464,17 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     this.callDownwards('_$destroy', [], true, true);
     this.element.remove();
     this.emitBubblingEvent('itemDestroyed');
-  },
+  }
 
   /**
    * Returns the area the component currently occupies in the format
    *
    * {
-   *		x1: int
-   *		xy: int
-   *		y1: int
-   *		y2: int
-   *		contentItem: contentItem
+   *        x1: int
+   *        xy: int
+   *        y1: int
+   *        y2: int
+   *        contentItem: contentItem
    * }
    */
   _$getArea(element) {
@@ -474,9 +490,9 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
       x2: offset.left + width,
       y2: offset.top + height,
       surface: width * height,
-      contentItem: this,
+      contentItem: this
     };
-  },
+  }
 
   /**
    * The tree of content items is created in two steps: First all content items are instantiated,
@@ -500,7 +516,7 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     this.isInitialised = true;
     this.emitBubblingEvent('itemCreated');
     this.emitBubblingEvent(`${this.type}Created`);
-  },
+  }
 
   /**
    * Emit an event that bubbles up the item tree.
@@ -510,9 +526,9 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
    * @returns {void}
    */
   emitBubblingEvent(name) {
-    const event = new lm.utils.BubblingEvent(name, this);
+    const event = new BubblingEvent(name, this);
     this.emit(name, event);
-  },
+  }
 
   /**
    * Private method, creates all content items for this node at initialisation time
@@ -526,14 +542,17 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
     let oContentItem, i;
 
     if (!(config.content instanceof Array)) {
-      throw new lm.errors.ConfigurationError('content must be an Array', config);
+      throw new ConfigurationError('content must be an Array', config);
     }
 
     for (i = 0; i < config.content.length; i++) {
-      oContentItem = this.layoutManager.createContentItem(config.content[i], this);
+      oContentItem = this.layoutManager.createContentItem(
+        config.content[i],
+        this
+      );
       this.contentItems.push(oContentItem);
     }
-  },
+  }
 
   /**
    * Extends an item configuration node with default settings
@@ -543,27 +562,27 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
    * @returns {configuration item node} extended config
    */
   _extendItemNode(config) {
-    for (const key in lm.config.itemDefaultConfig) {
+    for (const key in itemDefaultConfig) {
       if (config[key] === undefined) {
-        config[key] = lm.config.itemDefaultConfig[key];
+        config[key] = itemDefaultConfig[key];
       }
     }
 
     return config;
-  },
+  }
 
   /**
    * Called for every event on the item tree. Decides whether the event is a bubbling
    * event and propagates it to its parent
    *
    * @param    {String} name the name of the event
-   * @param   {lm.utils.BubblingEvent} event
+   * @param   {BubblingEvent} event
    *
    * @returns {void}
    */
   _propagateEvent(name, event) {
     if (
-      event instanceof lm.utils.BubblingEvent &&
+      event instanceof BubblingEvent &&
       event.isPropagationStopped === false &&
       this.isInitialised === true
     ) {
@@ -574,12 +593,15 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
        * to the layoutManager
        */
       if (this.isRoot === false && this.parent) {
-        this.parent.emit.apply(this.parent, Array.prototype.slice.call(arguments, 0));
+        this.parent.emit.apply(
+          this.parent,
+          Array.prototype.slice.call(arguments, 0)
+        );
       } else {
         this._scheduleEventPropagationToLayoutManager(name, event);
       }
     }
-  },
+  }
 
   /**
    * All raw events bubble up to the root element. Some events that
@@ -592,13 +614,15 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
    * @returns {void}
    */
   _scheduleEventPropagationToLayoutManager(name, event) {
-    if (lm.utils.indexOf(name, this._throttledEvents) === -1) {
+    if (this._throttledEvents.indexOf(name) === -1) {
       this.layoutManager.emit(name, event.origin);
     } else if (this._pendingEventPropagations[name] !== true) {
       this._pendingEventPropagations[name] = true;
-      lm.utils.animFrame(lm.utils.fnBind(this._propagateEventToLayoutManager, this, [name, event]));
+      utils.animFrame(
+        this._propagateEventToLayoutManager.bind(this, name, event)
+      );
     }
-  },
+  }
 
   /**
    * Callback for events scheduled by _scheduleEventPropagationToLayoutManager
@@ -611,5 +635,5 @@ lm.utils.copy(lm.items.AbstractContentItem.prototype, {
   _propagateEventToLayoutManager(name, event) {
     this._pendingEventPropagations[name] = false;
     this.layoutManager.emit(name, event);
-  },
-});
+  }
+}

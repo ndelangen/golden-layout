@@ -16,13 +16,13 @@ describe('emits events when components are created', () => {
               content: [
                 {
                   type: 'component',
-                  componentName: 'testComponent',
-                },
-              ],
-            },
-          ],
-        },
-      ],
+                  componentName: 'testComponent'
+                }
+              ]
+            }
+          ]
+        }
+      ]
     });
 
     function Recorder(container) {

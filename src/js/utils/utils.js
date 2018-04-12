@@ -1,19 +1,10 @@
-lm.utils.F = function() {};
+import $ from 'jquery';
 
-lm.utils.extend = function(subClass, superClass) {
-  subClass.prototype = lm.utils.createObject(superClass.prototype);
-  subClass.prototype.contructor = subClass;
-};
+export function createObject(prototype) {
+  return Object.create(prototype);
+}
 
-lm.utils.createObject = function(prototype) {
-  if (typeof Object.create === 'function') {
-    return Object.create(prototype);
-  }
-  lm.utils.F.prototype = prototype;
-  return new lm.utils.F();
-};
-
-lm.utils.objectKeys = function(object) {
+export function objectKeys(object) {
   let keys, key;
 
   if (typeof Object.keys === 'function') {
@@ -24,16 +15,16 @@ lm.utils.objectKeys = function(object) {
     keys.push(key);
   }
   return keys;
-};
+}
 
-lm.utils.getHashValue = function(key) {
+export function getHashValue(key) {
   const matches = location.hash.match(new RegExp(`${key}=([^&]*)`));
   return matches ? matches[1] : null;
-};
+}
 
-lm.utils.getQueryStringParam = function(param) {
+export function getQueryStringParam(param) {
   if (window.location.hash) {
-    return lm.utils.getHashValue(param);
+    return getHashValue(param);
   } else if (!window.location.search) {
     return null;
   }
@@ -49,14 +40,14 @@ lm.utils.getQueryStringParam = function(param) {
   }
 
   return params[param] || null;
-};
+}
 
-lm.utils.copy = function(target, source) {
+export function copy(target, source) {
   for (const key in source) {
     target[key] = source[key];
   }
   return target;
-};
+}
 
 /**
  * This is based on Paul Irish's shim, but looks quite odd in comparison. Why?
@@ -68,7 +59,7 @@ lm.utils.copy = function(target, source) {
  *
  * @returns {void}
  */
-lm.utils.animFrame = function(fn) {
+export function animFrame(fn) {
   return (window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
     window.mozRequestAnimationFrame ||
@@ -77,9 +68,9 @@ lm.utils.animFrame = function(fn) {
     })(() => {
     fn();
   });
-};
+}
 
-lm.utils.indexOf = function(needle, haystack) {
+export function indexOf(needle, haystack) {
   if (!(haystack instanceof Array)) {
     throw new Error('Haystack is not an Array');
   }
@@ -93,26 +84,22 @@ lm.utils.indexOf = function(needle, haystack) {
     }
   }
   return -1;
-};
-
-if (typeof /./ !== 'function' && typeof Int8Array !== 'object') {
-  lm.utils.isFunction = function(obj) {
-    return typeof obj === 'function' || false;
-  };
-} else {
-  lm.utils.isFunction = function(obj) {
-    return toString.call(obj) === '[object Function]';
-  };
 }
 
-lm.utils.fnBind = function(fn, context, boundArgs) {
+export function isFunction(obj) {
+  return typeof obj === 'function' || false;
+}
+
+export function fnBind(fn, context, boundArgs) {
   if (Function.prototype.bind !== undefined) {
     return Function.prototype.bind.apply(fn, [context].concat(boundArgs || []));
   }
 
   var bound = function() {
     // Join the already applied arguments to the now called ones (after converting to an array again).
-    const args = (boundArgs || []).concat(Array.prototype.slice.call(arguments, 0));
+    const args = (boundArgs || []).concat(
+      Array.prototype.slice.call(arguments, 0)
+    );
 
     // If not being called as a constructor
     if (!(this instanceof bound)) {
@@ -125,28 +112,28 @@ lm.utils.fnBind = function(fn, context, boundArgs) {
   // Attach the prototype of the function to our newly created function.
   bound.prototype = fn.prototype;
   return bound;
-};
+}
 
-lm.utils.removeFromArray = function(item, array) {
-  const index = lm.utils.indexOf(item, array);
+export function removeFromArray(item, array) {
+  const index = indexOf(item, array);
 
   if (index === -1) {
     throw new Error("Can't remove item from array. Item is not in the array");
   }
 
   array.splice(index, 1);
-};
+}
 
-lm.utils.now = function() {
+export function now() {
   if (typeof Date.now === 'function') {
     return Date.now();
   }
   return new Date().getTime();
-};
+}
 
-lm.utils.getUniqueId = function() {
+export function getUniqueId() {
   return (Math.random() * 1000000000000000).toString(36).replace('.', '');
-};
+}
 
 /**
  * A basic XSS filter. It is ultimately up to the
@@ -158,7 +145,7 @@ lm.utils.getUniqueId = function() {
  *
  * @returns {String} filtered input
  */
-lm.utils.filterXss = function(input, keepTags) {
+export function filterXss(input, keepTags) {
   const output = input
     .replace(/javascript/gi, 'j&#97;vascript')
     .replace(/expression/gi, 'expr&#101;ssion')
@@ -170,7 +157,7 @@ lm.utils.filterXss = function(input, keepTags) {
     return output;
   }
   return output.replace(/>/g, '&gt;').replace(/</g, '&lt;');
-};
+}
 
 /**
  * Removes html tags from a string
@@ -179,6 +166,6 @@ lm.utils.filterXss = function(input, keepTags) {
  *
  * @returns {String} input without tags
  */
-lm.utils.stripTags = function(input) {
+export function stripTags(input) {
   return $.trim(input.replace(/(<([^>]+)>)/gi, ''));
-};
+}
