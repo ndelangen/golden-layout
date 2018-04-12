@@ -27,11 +27,11 @@
 }
 
 // Single Pane content during Drag (style of moving window following mouse)
-.lm_dragProxy {
-  .lm_content {
-    box-shadow: 2px 2px 4px fade(@color1,20%);
-  }
-}
+// .lm_dragProxy {
+//   .lm_content {
+//     box-shadow: 2px 2px 4px fade(@color1,20%);
+//   }
+// }
 
 // Placeholder Container of target position
 .lm_dropTargetIndicator {
@@ -72,6 +72,9 @@
     padding-bottom: 4px;
     border: 1px solid @color2;
     border-bottom: none;
+    flex: 1;
+    height: 100%;
+    box-sizing: border-box!important;
 
     .lm_title {
       padding-top: 1px;
@@ -96,7 +99,7 @@
     // If Tab is active, so if it's in foreground
     &.lm_active {
       border-bottom: none;
-      box-shadow: 2px -2px 2px -2px fade(@color1,20%);
+      // box-shadow: 2px -2px 2px -2px fade(@color1,20%);
       padding-bottom: 5px;
 
       .lm_close_tab {
@@ -106,24 +109,24 @@
   }
 }
 
-.lm_dragProxy,
-.lm_stack {
-  &.lm_right {
-    .lm_header .lm_tab {
-      &.lm_active {
-        box-shadow: 2px -2px 2px -2px fade(@color1,20%);
-      }
-    }  
-  }
+// .lm_dragProxy,
+// .lm_stack {
+//   &.lm_right {
+//     .lm_header .lm_tab {
+//       &.lm_active {
+//         box-shadow: 2px -2px 2px -2px fade(@color1,20%);
+//       }
+//     }  
+//   }
   
-  &.lm_bottom {
-    .lm_header .lm_tab {
-      &.lm_active {
-        box-shadow: 2px 2px 2px -2px fade(@color1,20%);
-      }
-    }
-  } 
-}
+//   &.lm_bottom {
+//     .lm_header .lm_tab {
+//       &.lm_active {
+//         box-shadow: 2px 2px 2px -2px fade(@color1,20%);
+//       }
+//     }
+//   } 
+// }
 
 // If Pane Header (container of Tabs for each pane) is selected (used only if addition of new Contents is made "by selection" and not "by drag")
 .lm_selected {
@@ -192,7 +195,7 @@
   > .lm_items {
     border-color: @color9;
     border-image: linear-gradient(to right, @color9 1%, @color4 100%);
-    box-shadow: 2px 2px 2px -2px fade(@color1,20%);
+    // box-shadow: 2px 2px 2px -2px fade(@color1,20%);
   }
 }
 

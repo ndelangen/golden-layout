@@ -12,12 +12,12 @@ lm.config.defaultConfig = {
     showMaximiseIcon: true,
     showCloseIcon: true,
     responsiveMode: 'onload', // Can be onload, always, or none.
-    tabOverlapAllowance: 0, // maximum pixel overlap per tab
+    tabOverlapAllowance: 200, // maximum pixel overlap per tab
     reorderOnTabMenuClick: true,
     tabControlOffset: 10,
   },
   dimensions: {
-    borderWidth: 5,
+    borderWidth: 30,
     borderGrabWidth: 15,
     minItemHeight: 10,
     minItemWidth: 10,
