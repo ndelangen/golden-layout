@@ -17,385 +17,377 @@ import $ from 'jquery';
  * @returns {void}
  */
 export default class GoldenLayout extends utils.EventEmitter {
-    /*
+  /*
      * @public
      * @constructor
      * @param {GoldenLayout config} config
      * @param {[DOM element container]} container Can be a jQuery selector string or a Dom element. Defaults to body
     */
-    constructor(config, container) {
-        super();
+  constructor(config, container) {
+    super();
 
-        this.isInitialised = false;
-        this._isFullPage = false;
-        this._resizeTimeoutId = null;
-        this._components = {
-            'lm-react-component': utils.ReactComponentHandler
-        };
-        this._itemAreas = [];
-        this._resizeFunction = this._onResize.bind(this);
-        this._unloadFunction = this._onUnload.bind(this);
-        this._maximisedItem = null;
-        // TODO replace JQuery
-        this._maximisePlaceholder = $('<div class="lm_maximise_place"></div>');
-        this._creationTimeoutPassed = false;
-        this._subWindowsCreated = false;
-        this._dragSources = [];
-        this._updatingColumnsResponsive = false;
-        this._firstLoad = true;
+    this.isInitialised = false;
+    this._isFullPage = false;
+    this._resizeTimeoutId = null;
+    this._components = {
+      'lm-react-component': utils.ReactComponentHandler
+    };
+    this._itemAreas = [];
+    this._resizeFunction = this._onResize.bind(this);
+    this._unloadFunction = this._onUnload.bind(this);
+    this._maximisedItem = null;
+    // TODO replace JQuery
+    this._maximisePlaceholder = $('<div class="lm_maximise_place"></div>');
+    this._creationTimeoutPassed = false;
+    this._subWindowsCreated = false;
+    this._dragSources = [];
+    this._updatingColumnsResponsive = false;
+    this._firstLoad = true;
 
-        this.width = null;
-        this.height = null;
-        this.root = null;
-        this.openPopouts = [];
-        this.selectedItem = null;
-        this.isSubWindow = false;
-        this.eventHub = new utils.EventHub(this);
-        this.config = this._createConfig(config);
-        this.container = container;
-        this.dropTargetIndicator = null;
-        this.transitionIndicator = null;
-        this.tabDropPlaceholder = $(
-            '<div class="lm_drop_tab_placeholder"></div>'
-        );
+    this.width = null;
+    this.height = null;
+    this.root = null;
+    this.openPopouts = [];
+    this.selectedItem = null;
+    this.isSubWindow = false;
+    this.eventHub = new utils.EventHub(this);
+    this.config = this._createConfig(config);
+    this.container = container;
+    this.dropTargetIndicator = null;
+    this.transitionIndicator = null;
+    this.tabDropPlaceholder = $('<div class="lm_drop_tab_placeholder"></div>');
 
-        if (this.isSubWindow === true) {
-            document.querySelector('body').style.visibility = 'hidden';
-        }
-
-        this._typeToItem = {
-            column: items.RowOrColumn.bind(this, true),
-            row: items.RowOrColumn.bind(this, false),
-            stack: items.Stack,
-            component: items.Component
-        };
+    if (this.isSubWindow === true) {
+      document.querySelector('body').style.visibility = 'hidden';
     }
 
-    /**
-     * Takes a GoldenLayout configuration object and
-     * replaces its keys and values recursively with
-     * one letter codes
-     *
-     * @static
-     * @public
-     * @param   {Object} config A GoldenLayout config object
-     *
-     * @returns {Object} minified config
-     */
-    static minifyConfig(config) {
-        return new utils.ConfigMinifier().minifyConfig(config);
+    this._typeToItem = {
+      column: items.RowOrColumn.bind(this, true),
+      row: items.RowOrColumn.bind(this, false),
+      stack: items.Stack,
+      component: items.Component
+    };
+  }
+
+  /**
+   * Takes a GoldenLayout configuration object and
+   * replaces its keys and values recursively with
+   * one letter codes
+   *
+   * @static
+   * @public
+   * @param   {Object} config A GoldenLayout config object
+   *
+   * @returns {Object} minified config
+   */
+  static minifyConfig(config) {
+    return new utils.ConfigMinifier().minifyConfig(config);
+  }
+
+  /**
+   * Takes a configuration Object that was previously minified
+   * using minifyConfig and returns its original version
+   *
+   * @static
+   * @public
+   * @param   {Object} minifiedConfig
+   *
+   * @returns {Object} the original configuration
+   */
+  static unminifyConfig(config) {
+    return new utils.ConfigMinifier().unminifyConfig(config);
+  }
+
+  /**
+   * Register a component with the layout manager. If a configuration node
+   * of type component is reached it will look up componentName and create the
+   * associated component
+   *
+   *  {
+   *        type: "component",
+   *        componentName: "EquityNewsFeed",
+   *        componentState: { "feedTopic": "us-bluechips" }
+   *  }
+   *
+   * @public
+   * @param   {String} name
+   * @param   {Function} constructor
+   *
+   * @returns {void}
+   */
+  registerComponent(name, constructor) {
+    if (typeof constructor !== 'function') {
+      throw new Error('Please register a constructor function');
     }
 
-    /**
-     * Takes a configuration Object that was previously minified
-     * using minifyConfig and returns its original version
-     *
-     * @static
-     * @public
-     * @param   {Object} minifiedConfig
-     *
-     * @returns {Object} the original configuration
-     */
-    static unminifyConfig(config) {
-        return new utils.ConfigMinifier().unminifyConfig(config);
+    if (this._components[name] !== undefined) {
+      throw new Error(`Component ${name} is already registered`);
     }
 
-    /**
-     * Register a component with the layout manager. If a configuration node
-     * of type component is reached it will look up componentName and create the
-     * associated component
-     *
-     *  {
-     *        type: "component",
-     *        componentName: "EquityNewsFeed",
-     *        componentState: { "feedTopic": "us-bluechips" }
-     *  }
-     *
-     * @public
-     * @param   {String} name
-     * @param   {Function} constructor
-     *
-     * @returns {void}
-     */
-    registerComponent(name, constructor) {
-        if (typeof constructor !== 'function') {
-            throw new Error('Please register a constructor function');
-        }
+    this._components[name] = constructor;
+  }
 
-        if (this._components[name] !== undefined) {
-            throw new Error('Component ' + name + ' is already registered');
-        }
+  /**
+   * Creates a layout configuration object based on the the current state
+   *
+   * @public
+   * @returns {Object} GoldenLayout configuration
+   */
+  toConfig(root) {
+    let config, next, i;
 
-        this._components[name] = constructor;
+    if (this.isInitialised === false) {
+      throw new Error("Can't create config, layout not yet initialised");
     }
 
-    /**
-     * Creates a layout configuration object based on the the current state
-     *
-     * @public
-     * @returns {Object} GoldenLayout configuration
-     */
-    toConfig(root) {
-        var config, next, i;
+    if (root && !(root instanceof items.AbstractContentItem)) {
+      throw new Error('Root must be a ContentItem');
+    }
 
-        if (this.isInitialised === false) {
-            throw new Error("Can't create config, layout not yet initialised");
-        }
-
-        if (root && !(root instanceof items.AbstractContentItem)) {
-            throw new Error('Root must be a ContentItem');
-        }
-
-        /*
+    /*
          * settings & labels
          */
-        config = {
-            settings: utils.copy({}, this.config.settings),
-            dimensions: utils.copy({}, this.config.dimensions),
-            labels: utils.copy({}, this.config.labels)
-        };
+    config = {
+      settings: utils.copy({}, this.config.settings),
+      dimensions: utils.copy({}, this.config.dimensions),
+      labels: utils.copy({}, this.config.labels)
+    };
 
-        /*
+    /*
          * Content
          */
-        config.content = [];
-        next = function(configNode, item) {
-            var key, i;
+    config.content = [];
+    next = function(configNode, item) {
+      let key, i;
 
-            for (key in item.config) {
-                if (key !== 'content') {
-                    configNode[key] = item.config[key];
-                }
-            }
-
-            if (item.contentItems.length) {
-                configNode.content = [];
-
-                for (i = 0; i < item.contentItems.length; i++) {
-                    configNode.content[i] = {};
-                    next(configNode.content[i], item.contentItems[i]);
-                }
-            }
-        };
-
-        if (root) {
-            next(config, { contentItems: [root] });
-        } else {
-            next(config, this.root);
+      for (key in item.config) {
+        if (key !== 'content') {
+          configNode[key] = item.config[key];
         }
+      }
 
-        /*
+      if (item.contentItems.length) {
+        configNode.content = [];
+
+        for (i = 0; i < item.contentItems.length; i++) {
+          configNode.content[i] = {};
+          next(configNode.content[i], item.contentItems[i]);
+        }
+      }
+    };
+
+    if (root) {
+      next(config, { contentItems: [root] });
+    } else {
+      next(config, this.root);
+    }
+
+    /*
          * Retrieve config for subwindows
          */
-        this._$reconcilePopoutWindows();
-        config.openPopouts = [];
-        for (i = 0; i < this.openPopouts.length; i++) {
-            config.openPopouts.push(this.openPopouts[i].toConfig());
-        }
+    this._$reconcilePopoutWindows();
+    config.openPopouts = [];
+    for (i = 0; i < this.openPopouts.length; i++) {
+      config.openPopouts.push(this.openPopouts[i].toConfig());
+    }
 
-        /*
+    /*
          * Add maximised item
          */
-        config.maximisedItemId = this._maximisedItem ? '__glMaximised' : null;
-        return config;
+    config.maximisedItemId = this._maximisedItem ? '__glMaximised' : null;
+    return config;
+  }
+
+  /**
+   * Returns a previously registered component
+   *
+   * @public
+   * @param   {String} name The name used
+   *
+   * @returns {Function}
+   */
+  getComponent(name) {
+    if (this._components[name] === undefined) {
+      throw new ConfigurationError(`Unknown component "${name}"`);
     }
 
+    return this._components[name];
+  }
+
+  /**
+   * Creates the actual layout. Must be called after all initial components
+   * are registered. Recurses through the configuration and sets up
+   * the item tree.
+   *
+   * If called before the document is ready it adds itself as a listener
+   * to the document.ready event
+   *
+   * @public
+   *
+   * @returns {void}
+   */
+  init() {
     /**
-     * Returns a previously registered component
-     *
-     * @public
-     * @param   {String} name The name used
-     *
-     * @returns {Function}
+     * Create the popout windows straight away. If popouts are blocked
+     * an error is thrown on the same 'thread' rather than a timeout and can
+     * be caught. This also prevents any further initilisation from taking place.
      */
-    getComponent(name) {
-        if (this._components[name] === undefined) {
-            throw new ConfigurationError('Unknown component "' + name + '"');
-        }
-
-        return this._components[name];
+    if (this._subWindowsCreated === false) {
+      this._createSubWindows();
+      this._subWindowsCreated = true;
     }
 
     /**
-     * Creates the actual layout. Must be called after all initial components
-     * are registered. Recurses through the configuration and sets up
-     * the item tree.
-     *
-     * If called before the document is ready it adds itself as a listener
-     * to the document.ready event
-     *
-     * @public
-     *
-     * @returns {void}
+     * If the document isn't ready yet, wait for it.
      */
-    init() {
-        /**
-         * Create the popout windows straight away. If popouts are blocked
-         * an error is thrown on the same 'thread' rather than a timeout and can
-         * be caught. This also prevents any further initilisation from taking place.
-         */
-        if (this._subWindowsCreated === false) {
-            this._createSubWindows();
-            this._subWindowsCreated = true;
-        }
-
-        /**
-         * If the document isn't ready yet, wait for it.
-         */
-        if (document.readyState === 'loading' || document.body === null) {
-            $(document).ready(this.init.bind(this));
-            return;
-        }
-
-        /**
-         * If this is a subwindow, wait a few milliseconds for the original
-         * page's js calls to be executed, then replace the bodies content
-         * with GoldenLayout
-         */
-        if (
-            this.isSubWindow === true &&
-            this._creationTimeoutPassed === false
-        ) {
-            setTimeout(this.init.bind(this), 7);
-            this._creationTimeoutPassed = true;
-            return;
-        }
-
-        if (this.isSubWindow === true) {
-            this._adjustToWindowMode();
-        }
-
-        this._setContainer();
-        this.dropTargetIndicator = new DropTargetIndicator(this.container);
-        this.transitionIndicator = new TransitionIndicator();
-        this.updateSize();
-        this._create(this.config);
-        this._bindEvents();
-        this.isInitialised = true;
-        this._adjustColumnsResponsive();
-        this.emit('initialised');
+    if (document.readyState === 'loading' || document.body === null) {
+      $(document).ready(this.init.bind(this));
+      return;
     }
 
     /**
-     * Updates the layout managers size
-     *
-     * @public
-     * @param   {[int]} width  height in pixels
-     * @param   {[int]} height width in pixels
-     *
-     * @returns {void}
+     * If this is a subwindow, wait a few milliseconds for the original
+     * page's js calls to be executed, then replace the bodies content
+     * with GoldenLayout
      */
-    updateSize(width, height) {
-        if (arguments.length === 2) {
-            this.width = width;
-            this.height = height;
-        } else {
-            this.width = this.container.width();
-            this.height = this.container.height();
-        }
+    if (this.isSubWindow === true && this._creationTimeoutPassed === false) {
+      setTimeout(this.init.bind(this), 7);
+      this._creationTimeoutPassed = true;
+      return;
+    }
 
-        if (this.isInitialised === true) {
-            this.root.callDownwards('setSize', [this.width, this.height]);
+    if (this.isSubWindow === true) {
+      this._adjustToWindowMode();
+    }
 
-            if (this._maximisedItem) {
-                this._maximisedItem.element.width(this.container.width());
-                this._maximisedItem.element.height(this.container.height());
-                this._maximisedItem.callDownwards('setSize');
-            }
+    this._setContainer();
+    this.dropTargetIndicator = new DropTargetIndicator(this.container);
+    this.transitionIndicator = new TransitionIndicator();
+    this.updateSize();
+    this._create(this.config);
+    this._bindEvents();
+    this.isInitialised = true;
+    this._adjustColumnsResponsive();
+    this.emit('initialised');
+  }
 
-            this._adjustColumnsResponsive();
-        }
+  /**
+   * Updates the layout managers size
+   *
+   * @public
+   * @param   {[int]} width  height in pixels
+   * @param   {[int]} height width in pixels
+   *
+   * @returns {void}
+   */
+  updateSize(width, height) {
+    if (arguments.length === 2) {
+      this.width = width;
+      this.height = height;
+    } else {
+      this.width = this.container.width();
+      this.height = this.container.height();
+    }
+
+    if (this.isInitialised === true) {
+      this.root.callDownwards('setSize', [this.width, this.height]);
+
+      if (this._maximisedItem) {
+        this._maximisedItem.element.width(this.container.width());
+        this._maximisedItem.element.height(this.container.height());
+        this._maximisedItem.callDownwards('setSize');
+      }
+
+      this._adjustColumnsResponsive();
+    }
+  }
+
+  /**
+   * Destroys the GoldenLayout instance itself as well as every ContentItem
+   * within it. After this is called nothing should be left of the GoldenLayout.
+   *
+   * @public
+   * @returns {void}
+   */
+  destroy() {
+    if (this.isInitialised === false) {
+      return;
+    }
+    this._onUnload();
+    $(window).off('resize', this._resizeFunction);
+    $(window).off('unload beforeunload', this._unloadFunction);
+    this.root.callDownwards('_$destroy', [], true);
+    this.root.contentItems = [];
+    this.tabDropPlaceholder.remove();
+    this.dropTargetIndicator.destroy();
+    this.transitionIndicator.destroy();
+    this.eventHub.destroy();
+
+    this._dragSources.forEach(dragSource => {
+      dragSource._dragListener.destroy();
+      dragSource._element = null;
+      dragSource._itemConfig = null;
+      dragSource._dragListener = null;
+    });
+    this._dragSources = [];
+  }
+
+  /**
+   * Recursively creates new item tree structures based on a provided
+   * ItemConfiguration object
+   *
+   * @public
+   * @param   {Object} config ItemConfig
+   * @param   {[ContentItem]} parent The item the newly created item should be a child of
+   *
+   * @returns {items.ContentItem}
+   */
+  createContentItem(config, parent) {
+    let typeErrorMsg, contentItem;
+
+    if (typeof config.type !== 'string') {
+      throw new ConfigurationError("Missing parameter 'type'", config);
+    }
+
+    if (config.type === 'react-component') {
+      config.type = 'component';
+      config.componentName = 'lm-react-component';
+    }
+
+    if (!this._typeToItem[config.type]) {
+      typeErrorMsg =
+        `Unknown type '${config.type}'. ` +
+        `Valid types are ${Object.keys(this._typeToItem).join(',')}`;
+
+      throw new ConfigurationError(typeErrorMsg);
     }
 
     /**
-     * Destroys the GoldenLayout instance itself as well as every ContentItem
-     * within it. After this is called nothing should be left of the GoldenLayout.
-     *
-     * @public
-     * @returns {void}
+     * We add an additional stack around every component that's not within a stack anyways.
      */
-    destroy() {
-        if (this.isInitialised === false) {
-            return;
-        }
-        this._onUnload();
-        $(window).off('resize', this._resizeFunction);
-        $(window).off('unload beforeunload', this._unloadFunction);
-        this.root.callDownwards('_$destroy', [], true);
-        this.root.contentItems = [];
-        this.tabDropPlaceholder.remove();
-        this.dropTargetIndicator.destroy();
-        this.transitionIndicator.destroy();
-        this.eventHub.destroy();
-
-        this._dragSources.forEach(function(dragSource) {
-            dragSource._dragListener.destroy();
-            dragSource._element = null;
-            dragSource._itemConfig = null;
-            dragSource._dragListener = null;
-        });
-        this._dragSources = [];
+    if (
+      // If this is a component
+      config.type === 'component' &&
+      // and it's not already within a stack
+      !(parent instanceof items.Stack) &&
+      // and we have a parent
+      !!parent &&
+      // and it's not the topmost item in a new window
+      !(this.isSubWindow === true && parent instanceof items.Root)
+    ) {
+      config = {
+        type: 'stack',
+        width: config.width,
+        height: config.height,
+        content: [config]
+      };
     }
 
-    /**
-     * Recursively creates new item tree structures based on a provided
-     * ItemConfiguration object
-     *
-     * @public
-     * @param   {Object} config ItemConfig
-     * @param   {[ContentItem]} parent The item the newly created item should be a child of
-     *
-     * @returns {items.ContentItem}
-     */
-    createContentItem(config, parent) {
-        var typeErrorMsg, contentItem;
+    contentItem = new this._typeToItem[config.type](this, config, parent);
+    return contentItem;
+  }
 
-        if (typeof config.type !== 'string') {
-            throw new ConfigurationError("Missing parameter 'type'", config);
-        }
-
-        if (config.type === 'react-component') {
-            config.type = 'component';
-            config.componentName = 'lm-react-component';
-        }
-
-        if (!this._typeToItem[config.type]) {
-            typeErrorMsg =
-                "Unknown type '" +
-                config.type +
-                "'. " +
-                'Valid types are ' +
-                Object.keys(this._typeToItem).join(',');
-
-            throw new ConfigurationError(typeErrorMsg);
-        }
-
-        /**
-         * We add an additional stack around every component that's not within a stack anyways.
-         */
-        if (
-            // If this is a component
-            config.type === 'component' &&
-            // and it's not already within a stack
-            !(parent instanceof items.Stack) &&
-            // and we have a parent
-            !!parent &&
-            // and it's not the topmost item in a new window
-            !(this.isSubWindow === true && parent instanceof items.Root)
-        ) {
-            config = {
-                type: 'stack',
-                width: config.width,
-                height: config.height,
-                content: [config]
-            };
-        }
-
-        contentItem = new this._typeToItem[config.type](this, config, parent);
-        return contentItem;
-    }
-
-    /**
+  /**
      * Creates a popout window with the specified content and dimensions
      *
      * @param   {Object|itemsAbstractContentItem} configOrContentItem
@@ -406,712 +398,697 @@ export default class GoldenLayout extends utils.EventEmitter {
 
      * @returns {BrowserPopout}
      */
-    createPopout(configOrContentItem, dimensions, parentId, indexInParent) {
-        var config = configOrContentItem,
-            isItem = configOrContentItem instanceof items.AbstractContentItem,
-            self = this,
-            windowLeft,
-            windowTop,
-            offset,
-            parent,
-            child,
-            browserPopout;
+  createPopout(configOrContentItem, dimensions, parentId, indexInParent) {
+    let config = configOrContentItem,
+      isItem = configOrContentItem instanceof items.AbstractContentItem,
+      self = this,
+      windowLeft,
+      windowTop,
+      offset,
+      parent,
+      child,
+      browserPopout;
 
-        parentId = parentId || null;
+    parentId = parentId || null;
 
-        if (isItem) {
-            config = this.toConfig(configOrContentItem).content;
-            parentId = utils.getUniqueId();
+    if (isItem) {
+      config = this.toConfig(configOrContentItem).content;
+      parentId = utils.getUniqueId();
 
-            /**
-             * If the item is the only component within a stack or for some
-             * other reason the only child of its parent the parent will be destroyed
-             * when the child is removed.
-             *
-             * In order to support this we move up the tree until we find something
-             * that will remain after the item is being popped out
-             */
-            parent = configOrContentItem.parent;
-            child = configOrContentItem;
-            while (parent.contentItems.length === 1 && !parent.isRoot) {
-                parent = parent.parent;
-                child = child.parent;
-            }
+      /**
+       * If the item is the only component within a stack or for some
+       * other reason the only child of its parent the parent will be destroyed
+       * when the child is removed.
+       *
+       * In order to support this we move up the tree until we find something
+       * that will remain after the item is being popped out
+       */
+      parent = configOrContentItem.parent;
+      child = configOrContentItem;
+      while (parent.contentItems.length === 1 && !parent.isRoot) {
+        parent = parent.parent;
+        child = child.parent;
+      }
 
-            parent.addId(parentId);
-            if (isNaN(indexInParent)) {
-                indexInParent = parent.contentItems.indexOf(child);
-            }
-        } else {
-            if (!(config instanceof Array)) {
-                config = [config];
-            }
-        }
+      parent.addId(parentId);
+      if (isNaN(indexInParent)) {
+        indexInParent = parent.contentItems.indexOf(child);
+      }
+    } else if (!(config instanceof Array)) {
+      config = [config];
+    }
 
-        if (!dimensions && isItem) {
-            windowLeft = window.screenX || window.screenLeft;
-            windowTop = window.screenY || window.screenTop;
-            offset = configOrContentItem.element.offset();
+    if (!dimensions && isItem) {
+      windowLeft = window.screenX || window.screenLeft;
+      windowTop = window.screenY || window.screenTop;
+      offset = configOrContentItem.element.offset();
 
-            dimensions = {
-                left: windowLeft + offset.left,
-                top: windowTop + offset.top,
-                width: configOrContentItem.element.width(),
-                height: configOrContentItem.element.height()
-            };
-        }
+      dimensions = {
+        left: windowLeft + offset.left,
+        top: windowTop + offset.top,
+        width: configOrContentItem.element.width(),
+        height: configOrContentItem.element.height()
+      };
+    }
 
-        if (!dimensions && !isItem) {
-            dimensions = {
-                left: window.screenX || window.screenLeft + 20,
-                top: window.screenY || window.screenTop + 20,
-                width: 500,
-                height: 309
-            };
-        }
+    if (!dimensions && !isItem) {
+      dimensions = {
+        left: window.screenX || window.screenLeft + 20,
+        top: window.screenY || window.screenTop + 20,
+        width: 500,
+        height: 309
+      };
+    }
 
-        if (isItem) {
-            configOrContentItem.remove();
-        }
+    if (isItem) {
+      configOrContentItem.remove();
+    }
 
-        browserPopout = new BrowserPopout(
-            config,
-            dimensions,
-            parentId,
-            indexInParent,
-            this
+    browserPopout = new BrowserPopout(
+      config,
+      dimensions,
+      parentId,
+      indexInParent,
+      this
+    );
+
+    browserPopout.on('initialised', () => {
+      self.emit('windowOpened', browserPopout);
+    });
+
+    browserPopout.on('closed', () => {
+      self._$reconcilePopoutWindows();
+    });
+
+    this.openPopouts.push(browserPopout);
+
+    return browserPopout;
+  }
+
+  /**
+   * Attaches DragListener to any given DOM element
+   * and turns it into a way of creating new ContentItems
+   * by 'dragging' the DOM element into the layout
+   *
+   * @param   {jQuery DOM element} element
+   * @param   {Object|Function} itemConfig for the new item to be created, or a function which will provide it
+   *
+   * @returns {void}
+   */
+  createDragSource(element, itemConfig) {
+    this.config.settings.constrainDragToContainer = false;
+    const dragSource = new DragSource($(element), itemConfig, this);
+    this._dragSources.push(dragSource);
+
+    return dragSource;
+  }
+
+  /**
+   * Programmatically selects an item. This deselects
+   * the currently selected item, selects the specified item
+   * and emits a selectionChanged event
+   *
+   * @param   {AbstractContentItem} item#
+   * @param   {[Boolean]} _$silent Wheather to notify the item of its selection
+   * @event    selectionChanged
+   *
+   * @returns {void}
+   */
+  selectItem(item, _$silent) {
+    if (this.config.settings.selectionEnabled !== true) {
+      throw new Error(
+        'Please set selectionEnabled to true to use this feature'
+      );
+    }
+
+    if (item === this.selectedItem) {
+      return;
+    }
+
+    if (this.selectedItem !== null) {
+      this.selectedItem.deselect();
+    }
+
+    if (item && _$silent !== true) {
+      item.select();
+    }
+
+    this.selectedItem = item;
+
+    this.emit('selectionChanged', item);
+  }
+
+  /** ***********************
+   * PACKAGE PRIVATE
+   ************************ */
+  _$maximiseItem(contentItem) {
+    if (this._maximisedItem !== null) {
+      this._$minimiseItem(this._maximisedItem);
+    }
+    this._maximisedItem = contentItem;
+    this._maximisedItem.addId('__glMaximised');
+    contentItem.element.addClass('lm_maximised');
+    contentItem.element.after(this._maximisePlaceholder);
+    this.root.element.prepend(contentItem.element);
+    contentItem.element.width(this.container.width());
+    contentItem.element.height(this.container.height());
+    contentItem.callDownwards('setSize');
+    this._maximisedItem.emit('maximised');
+    this.emit('stateChanged');
+  }
+
+  _$minimiseItem(contentItem) {
+    contentItem.element.removeClass('lm_maximised');
+    contentItem.removeId('__glMaximised');
+    this._maximisePlaceholder.after(contentItem.element);
+    this._maximisePlaceholder.remove();
+    contentItem.parent.callDownwards('setSize');
+    this._maximisedItem = null;
+    contentItem.emit('minimised');
+    this.emit('stateChanged');
+  }
+
+  /**
+   * This method is used to get around sandboxed iframe restrictions.
+   * If 'allow-top-navigation' is not specified in the iframe's 'sandbox' attribute
+   * (as is the case with codepens) the parent window is forbidden from calling certain
+   * methods on the child, such as window.close() or setting document.location.href.
+   *
+   * This prevented GoldenLayout popouts from popping in in codepens. The fix is to call
+   * _$closeWindow on the child window's gl instance which (after a timeout to disconnect
+   * the invoking method from the close call) closes itself.
+   *
+   * @packagePrivate
+   *
+   * @returns {void}
+   */
+  _$closeWindow() {
+    window.setTimeout(() => {
+      window.close();
+    }, 1);
+  }
+
+  _$getArea(x, y) {
+    let i,
+      area,
+      smallestSurface = Infinity,
+      mathingArea = null;
+
+    for (i = 0; i < this._itemAreas.length; i++) {
+      area = this._itemAreas[i];
+
+      if (
+        x > area.x1 &&
+        x < area.x2 &&
+        y > area.y1 &&
+        y < area.y2 &&
+        smallestSurface > area.surface
+      ) {
+        smallestSurface = area.surface;
+        mathingArea = area;
+      }
+    }
+
+    return mathingArea;
+  }
+
+  _$createRootItemAreas() {
+    const areaSize = 50;
+    const sides = { y2: 0, x2: 0, y1: 'y2', x1: 'x2' };
+    for (const side in sides) {
+      const area = this.root._$getArea();
+      area.side = side;
+      if (sides[side]) area[side] = area[sides[side]] - areaSize;
+      else area[side] = areaSize;
+      area.surface = (area.x2 - area.x1) * (area.y2 - area.y1);
+      this._itemAreas.push(area);
+    }
+  }
+
+  _$calculateItemAreas() {
+    let i,
+      area,
+      allContentItems = this._getAllContentItems();
+    this._itemAreas = [];
+
+    /**
+     * If the last item is dragged out, highlight the entire container size to
+     * allow to re-drop it. allContentItems[ 0 ] === this.root at this point
+     *
+     * Don't include root into the possible drop areas though otherwise since it
+     * will used for every gap in the layout, e.g. splitters
+     */
+    if (allContentItems.length === 1) {
+      this._itemAreas.push(this.root._$getArea());
+      return;
+    }
+    this._$createRootItemAreas();
+
+    for (i = 0; i < allContentItems.length; i++) {
+      if (!allContentItems[i].isStack) {
+        continue;
+      }
+
+      area = allContentItems[i]._$getArea();
+
+      if (area === null) {
+        continue;
+      } else if (area instanceof Array) {
+        this._itemAreas = this._itemAreas.concat(area);
+      } else {
+        this._itemAreas.push(area);
+        const header = {};
+        utils.copy(header, area);
+        utils.copy(
+          header,
+          area.contentItem._contentAreaDimensions.header.highlightArea
         );
+        header.surface = (header.x2 - header.x1) * (header.y2 - header.y1);
+        this._itemAreas.push(header);
+      }
+    }
+  }
 
-        browserPopout.on('initialised', function() {
-            self.emit('windowOpened', browserPopout);
-        });
-
-        browserPopout.on('closed', function() {
-            self._$reconcilePopoutWindows();
-        });
-
-        this.openPopouts.push(browserPopout);
-
-        return browserPopout;
+  /**
+   * Takes a contentItem or a configuration and optionally a parent
+   * item and returns an initialised instance of the contentItem.
+   * If the contentItem is a function, it is first called
+   *
+   * @packagePrivate
+   *
+   * @param   {items.AbtractContentItem|Object|Function} contentItemOrConfig
+   * @param   {items.AbtractContentItem} parent Only necessary when passing in config
+   *
+   * @returns {items.AbtractContentItem}
+   */
+  _$normalizeContentItem(contentItemOrConfig, parent) {
+    if (!contentItemOrConfig) {
+      throw new Error('No content item defined');
     }
 
-    /**
-     * Attaches DragListener to any given DOM element
-     * and turns it into a way of creating new ContentItems
-     * by 'dragging' the DOM element into the layout
-     *
-     * @param   {jQuery DOM element} element
-     * @param   {Object|Function} itemConfig for the new item to be created, or a function which will provide it
-     *
-     * @returns {void}
-     */
-    createDragSource(element, itemConfig) {
-        this.config.settings.constrainDragToContainer = false;
-        var dragSource = new DragSource($(element), itemConfig, this);
-        this._dragSources.push(dragSource);
-
-        return dragSource;
+    if (typeof contentItemOrConfig === 'function') {
+      contentItemOrConfig = contentItemOrConfig();
     }
 
-    /**
-     * Programmatically selects an item. This deselects
-     * the currently selected item, selects the specified item
-     * and emits a selectionChanged event
-     *
-     * @param   {AbstractContentItem} item#
-     * @param   {[Boolean]} _$silent Wheather to notify the item of its selection
-     * @event    selectionChanged
-     *
-     * @returns {void}
-     */
-    selectItem(item, _$silent) {
-        if (this.config.settings.selectionEnabled !== true) {
-            throw new Error(
-                'Please set selectionEnabled to true to use this feature'
-            );
-        }
-
-        if (item === this.selectedItem) {
-            return;
-        }
-
-        if (this.selectedItem !== null) {
-            this.selectedItem.deselect();
-        }
-
-        if (item && _$silent !== true) {
-            item.select();
-        }
-
-        this.selectedItem = item;
-
-        this.emit('selectionChanged', item);
+    if (contentItemOrConfig instanceof items.AbstractContentItem) {
+      return contentItemOrConfig;
     }
 
-    /*************************
-     * PACKAGE PRIVATE
-     *************************/
-    _$maximiseItem(contentItem) {
-        if (this._maximisedItem !== null) {
-            this._$minimiseItem(this._maximisedItem);
-        }
-        this._maximisedItem = contentItem;
-        this._maximisedItem.addId('__glMaximised');
-        contentItem.element.addClass('lm_maximised');
-        contentItem.element.after(this._maximisePlaceholder);
-        this.root.element.prepend(contentItem.element);
-        contentItem.element.width(this.container.width());
-        contentItem.element.height(this.container.height());
-        contentItem.callDownwards('setSize');
-        this._maximisedItem.emit('maximised');
-        this.emit('stateChanged');
+    if ($.isPlainObject(contentItemOrConfig) && contentItemOrConfig.type) {
+      const newContentItem = this.createContentItem(
+        contentItemOrConfig,
+        parent
+      );
+      newContentItem.callDownwards('_$init');
+      return newContentItem;
+    }
+    throw new Error('Invalid contentItem');
+  }
+
+  /**
+   * Iterates through the array of open popout windows and removes the ones
+   * that are effectively closed. This is necessary due to the lack of reliably
+   * listening for window.close / unload events in a cross browser compatible fashion.
+   *
+   * @packagePrivate
+   *
+   * @returns {void}
+   */
+  _$reconcilePopoutWindows() {
+    let openPopouts = [],
+      i;
+
+    for (i = 0; i < this.openPopouts.length; i++) {
+      if (this.openPopouts[i].getWindow().closed === false) {
+        openPopouts.push(this.openPopouts[i]);
+      } else {
+        this.emit('windowClosed', this.openPopouts[i]);
+      }
     }
 
-    _$minimiseItem(contentItem) {
-        contentItem.element.removeClass('lm_maximised');
-        contentItem.removeId('__glMaximised');
-        this._maximisePlaceholder.after(contentItem.element);
-        this._maximisePlaceholder.remove();
-        contentItem.parent.callDownwards('setSize');
-        this._maximisedItem = null;
-        contentItem.emit('minimised');
-        this.emit('stateChanged');
+    if (this.openPopouts.length !== openPopouts.length) {
+      this.emit('stateChanged');
+      this.openPopouts = openPopouts;
+    }
+  }
+
+  /** *************************
+   * PRIVATE
+   ************************** */
+  /**
+   * Returns a flattened array of all content items,
+   * regardles of level or type
+   *
+   * @private
+   *
+   * @returns {void}
+   */
+  _getAllContentItems() {
+    const allContentItems = [];
+
+    var addChildren = function(contentItem) {
+      allContentItems.push(contentItem);
+
+      if (contentItem.contentItems instanceof Array) {
+        for (let i = 0; i < contentItem.contentItems.length; i++) {
+          addChildren(contentItem.contentItems[i]);
+        }
+      }
+    };
+
+    addChildren(this.root);
+
+    return allContentItems;
+  }
+
+  /**
+   * Binds to DOM/BOM events on init
+   *
+   * @private
+   *
+   * @returns {void}
+   */
+  _bindEvents() {
+    if (this._isFullPage) {
+      $(window).on('resize', this._resizeFunction);
+    }
+    $(window).on('unload beforeunload', this._unloadFunction);
+  }
+
+  /**
+   * Debounces resize events
+   *
+   * @private
+   *
+   * @returns {void}
+   */
+  _onResize() {
+    clearTimeout(this._resizeTimeoutId);
+    this._resizeTimeoutId = setTimeout(this.updateSize.bind(this), 100);
+  }
+
+  /**
+   * Extends the default config with the user specific settings and applies
+   * derivations. Please note that there's a separate method (AbstractContentItem._extendItemNode)
+   * that deals with the extension of item configs
+   *
+   * @param   {Object} config
+   * @static
+   * @returns {Object} config
+   */
+  _createConfig(config) {
+    const windowConfigKey = utils.getQueryStringParam('gl-window');
+
+    if (windowConfigKey) {
+      this.isSubWindow = true;
+      config = localStorage.getItem(windowConfigKey);
+      config = JSON.parse(config);
+      config = new utils.ConfigMinifier().unminifyConfig(config);
+      localStorage.removeItem(windowConfigKey);
     }
 
-    /**
-     * This method is used to get around sandboxed iframe restrictions.
-     * If 'allow-top-navigation' is not specified in the iframe's 'sandbox' attribute
-     * (as is the case with codepens) the parent window is forbidden from calling certain
-     * methods on the child, such as window.close() or setting document.location.href.
-     *
-     * This prevented GoldenLayout popouts from popping in in codepens. The fix is to call
-     * _$closeWindow on the child window's gl instance which (after a timeout to disconnect
-     * the invoking method from the close call) closes itself.
-     *
-     * @packagePrivate
-     *
-     * @returns {void}
-     */
-    _$closeWindow() {
-        window.setTimeout(function() {
-            window.close();
-        }, 1);
+    config = Object.assign({}, defaultConfig, config);
+
+    var nextNode = function(node) {
+      for (const key in node) {
+        if (key !== 'props' && typeof node[key] === 'object') {
+          nextNode(node[key]);
+        } else if (key === 'type' && node[key] === 'react-component') {
+          node.type = 'component';
+          node.componentName = 'lm-react-component';
+        }
+      }
+    };
+
+    nextNode(config);
+
+    if (config.settings.hasHeaders === false) {
+      config.dimensions.headerHeight = 0;
     }
 
-    _$getArea(x, y) {
-        var i,
-            area,
-            smallestSurface = Infinity,
-            mathingArea = null;
+    return config;
+  }
 
-        for (i = 0; i < this._itemAreas.length; i++) {
-            area = this._itemAreas[i];
+  /**
+   * This is executed when GoldenLayout detects that it is run
+   * within a previously opened popout window.
+   *
+   * @private
+   *
+   * @returns {void}
+   */
+  _adjustToWindowMode() {
+    const popInButton = $(
+      `<div class="lm_popin" title="${this.config.labels.popin}">` +
+        '<div class="lm_icon"></div>' +
+        '<div class="lm_bg"></div>' +
+        '</div>'
+    );
 
-            if (
-                x > area.x1 &&
-                x < area.x2 &&
-                y > area.y1 &&
-                y < area.y2 &&
-                smallestSurface > area.surface
-            ) {
-                smallestSurface = area.surface;
-                mathingArea = area;
-            }
-        }
+    popInButton.on('click', () => {
+      this.emit('popIn');
+    });
 
-        return mathingArea;
-    }
+    document.title = utils.stripTags(this.config.content[0].title);
 
-    _$createRootItemAreas() {
-        var areaSize = 50;
-        var sides = { y2: 0, x2: 0, y1: 'y2', x1: 'x2' };
-        for (var side in sides) {
-            var area = this.root._$getArea();
-            area.side = side;
-            if (sides[side]) area[side] = area[sides[side]] - areaSize;
-            else area[side] = areaSize;
-            area.surface = (area.x2 - area.x1) * (area.y2 - area.y1);
-            this._itemAreas.push(area);
-        }
-    }
+    $('head').append($('body link, body style, template, .gl_keep'));
 
-    _$calculateItemAreas() {
-        var i,
-            area,
-            allContentItems = this._getAllContentItems();
-        this._itemAreas = [];
+    this.container = $('body')
+      .html('')
+      .css('visibility', 'visible')
+      .append(popInButton);
 
-        /**
-         * If the last item is dragged out, highlight the entire container size to
-         * allow to re-drop it. allContentItems[ 0 ] === this.root at this point
-         *
-         * Don't include root into the possible drop areas though otherwise since it
-         * will used for every gap in the layout, e.g. splitters
-         */
-        if (allContentItems.length === 1) {
-            this._itemAreas.push(this.root._$getArea());
-            return;
-        }
-        this._$createRootItemAreas();
-
-        for (i = 0; i < allContentItems.length; i++) {
-            if (!allContentItems[i].isStack) {
-                continue;
-            }
-
-            area = allContentItems[i]._$getArea();
-
-            if (area === null) {
-                continue;
-            } else if (area instanceof Array) {
-                this._itemAreas = this._itemAreas.concat(area);
-            } else {
-                this._itemAreas.push(area);
-                var header = {};
-                utils.copy(header, area);
-                utils.copy(
-                    header,
-                    area.contentItem._contentAreaDimensions.header.highlightArea
-                );
-                header.surface =
-                    (header.x2 - header.x1) * (header.y2 - header.y1);
-                this._itemAreas.push(header);
-            }
-        }
-    }
-
-    /**
-     * Takes a contentItem or a configuration and optionally a parent
-     * item and returns an initialised instance of the contentItem.
-     * If the contentItem is a function, it is first called
-     *
-     * @packagePrivate
-     *
-     * @param   {items.AbtractContentItem|Object|Function} contentItemOrConfig
-     * @param   {items.AbtractContentItem} parent Only necessary when passing in config
-     *
-     * @returns {items.AbtractContentItem}
-     */
-    _$normalizeContentItem(contentItemOrConfig, parent) {
-        if (!contentItemOrConfig) {
-            throw new Error('No content item defined');
-        }
-
-        if (typeof contentItemOrConfig === 'function') {
-            contentItemOrConfig = contentItemOrConfig();
-        }
-
-        if (contentItemOrConfig instanceof items.AbstractContentItem) {
-            return contentItemOrConfig;
-        }
-
-        if ($.isPlainObject(contentItemOrConfig) && contentItemOrConfig.type) {
-            var newContentItem = this.createContentItem(
-                contentItemOrConfig,
-                parent
-            );
-            newContentItem.callDownwards('_$init');
-            return newContentItem;
-        } else {
-            throw new Error('Invalid contentItem');
-        }
-    }
-
-    /**
-     * Iterates through the array of open popout windows and removes the ones
-     * that are effectively closed. This is necessary due to the lack of reliably
-     * listening for window.close / unload events in a cross browser compatible fashion.
-     *
-     * @packagePrivate
-     *
-     * @returns {void}
-     */
-    _$reconcilePopoutWindows() {
-        var openPopouts = [],
-            i;
-
-        for (i = 0; i < this.openPopouts.length; i++) {
-            if (this.openPopouts[i].getWindow().closed === false) {
-                openPopouts.push(this.openPopouts[i]);
-            } else {
-                this.emit('windowClosed', this.openPopouts[i]);
-            }
-        }
-
-        if (this.openPopouts.length !== openPopouts.length) {
-            this.emit('stateChanged');
-            this.openPopouts = openPopouts;
-        }
-    }
-
-    /***************************
-     * PRIVATE
-     ***************************/
-    /**
-     * Returns a flattened array of all content items,
-     * regardles of level or type
-     *
-     * @private
-     *
-     * @returns {void}
-     */
-    _getAllContentItems() {
-        var allContentItems = [];
-
-        var addChildren = function(contentItem) {
-            allContentItems.push(contentItem);
-
-            if (contentItem.contentItems instanceof Array) {
-                for (var i = 0; i < contentItem.contentItems.length; i++) {
-                    addChildren(contentItem.contentItems[i]);
-                }
-            }
-        };
-
-        addChildren(this.root);
-
-        return allContentItems;
-    }
-
-    /**
-     * Binds to DOM/BOM events on init
-     *
-     * @private
-     *
-     * @returns {void}
-     */
-    _bindEvents() {
-        if (this._isFullPage) {
-            $(window).on('resize', this._resizeFunction);
-        }
-        $(window).on('unload beforeunload', this._unloadFunction);
-    }
-
-    /**
-     * Debounces resize events
-     *
-     * @private
-     *
-     * @returns {void}
-     */
-    _onResize() {
-        clearTimeout(this._resizeTimeoutId);
-        this._resizeTimeoutId = setTimeout(this.updateSize.bind(this), 100);
-    }
-
-    /**
-     * Extends the default config with the user specific settings and applies
-     * derivations. Please note that there's a separate method (AbstractContentItem._extendItemNode)
-     * that deals with the extension of item configs
-     *
-     * @param   {Object} config
-     * @static
-     * @returns {Object} config
-     */
-    _createConfig(config) {
-        var windowConfigKey = utils.getQueryStringParam('gl-window');
-
-        if (windowConfigKey) {
-            this.isSubWindow = true;
-            config = localStorage.getItem(windowConfigKey);
-            config = JSON.parse(config);
-            config = new utils.ConfigMinifier().unminifyConfig(config);
-            localStorage.removeItem(windowConfigKey);
-        }
-
-        config = Object.assign({}, defaultConfig, config);
-
-        var nextNode = function(node) {
-            for (var key in node) {
-                if (key !== 'props' && typeof node[key] === 'object') {
-                    nextNode(node[key]);
-                } else if (key === 'type' && node[key] === 'react-component') {
-                    node.type = 'component';
-                    node.componentName = 'lm-react-component';
-                }
-            }
-        };
-
-        nextNode(config);
-
-        if (config.settings.hasHeaders === false) {
-            config.dimensions.headerHeight = 0;
-        }
-
-        return config;
-    }
-
-    /**
-     * This is executed when GoldenLayout detects that it is run
-     * within a previously opened popout window.
-     *
-     * @private
-     *
-     * @returns {void}
-     */
-    _adjustToWindowMode() {
-        var popInButton = $(
-            '<div class="lm_popin" title="' +
-                this.config.labels.popin +
-                '">' +
-                '<div class="lm_icon"></div>' +
-                '<div class="lm_bg"></div>' +
-                '</div>'
-        );
-
-        popInButton.on('click', () => {
-            this.emit('popIn');
-        });
-
-        document.title = utils.stripTags(this.config.content[0].title);
-
-        $('head').append($('body link, body style, template, .gl_keep'));
-
-        this.container = $('body')
-            .html('')
-            .css('visibility', 'visible')
-            .append(popInButton);
-
-        /*
+    /*
          * This seems a bit pointless, but actually causes a reflow/re-evaluation getting around
          * slickgrid's "Cannot find stylesheet." bug in chrome
          */
-        var x = document.body.offsetHeight; // jshint ignore:line
+    const x = document.body.offsetHeight; // jshint ignore:line
 
-        /*
+    /*
          * Expose this instance on the window object
          * to allow the opening window to interact with
          * it
          */
-        window.__glInstance = this;
+    window.__glInstance = this;
+  }
+
+  /**
+   * Creates Subwindows (if there are any). Throws an error
+   * if popouts are blocked.
+   *
+   * @returns {void}
+   */
+  _createSubWindows() {
+    let i, popout;
+
+    for (i = 0; i < this.config.openPopouts.length; i++) {
+      popout = this.config.openPopouts[i];
+
+      this.createPopout(
+        popout.content,
+        popout.dimensions,
+        popout.parentId,
+        popout.indexInParent
+      );
+    }
+  }
+
+  /**
+   * Determines what element the layout will be created in
+   *
+   * @private
+   *
+   * @returns {void}
+   */
+  _setContainer() {
+    const container = $(this.container || 'body');
+
+    if (container.length === 0) {
+      throw new Error('GoldenLayout container not found');
     }
 
-    /**
-     * Creates Subwindows (if there are any). Throws an error
-     * if popouts are blocked.
-     *
-     * @returns {void}
-     */
-    _createSubWindows() {
-        var i, popout;
-
-        for (i = 0; i < this.config.openPopouts.length; i++) {
-            popout = this.config.openPopouts[i];
-
-            this.createPopout(
-                popout.content,
-                popout.dimensions,
-                popout.parentId,
-                popout.indexInParent
-            );
-        }
+    if (container.length > 1) {
+      throw new Error('GoldenLayout more than one container element specified');
     }
 
-    /**
-     * Determines what element the layout will be created in
-     *
-     * @private
-     *
-     * @returns {void}
-     */
-    _setContainer() {
-        var container = $(this.container || 'body');
+    if (container[0] === document.body) {
+      this._isFullPage = true;
 
-        if (container.length === 0) {
-            throw new Error('GoldenLayout container not found');
-        }
-
-        if (container.length > 1) {
-            throw new Error(
-                'GoldenLayout more than one container element specified'
-            );
-        }
-
-        if (container[0] === document.body) {
-            this._isFullPage = true;
-
-            $('html, body').css({
-                height: '100%',
-                margin: 0,
-                padding: 0,
-                overflow: 'hidden'
-            });
-        }
-
-        this.container = container;
+      $('html, body').css({
+        height: '100%',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden'
+      });
     }
 
-    /**
-     * Kicks of the initial, recursive creation chain
-     *
-     * @param   {Object} config GoldenLayout Config
-     *
-     * @returns {void}
-     */
-    _create(config) {
-        var errorMsg;
+    this.container = container;
+  }
 
-        if (!(config.content instanceof Array)) {
-            if (config.content === undefined) {
-                errorMsg =
-                    "Missing setting 'content' on top level of configuration";
-            } else {
-                errorMsg = "Configuration parameter 'content' must be an array";
-            }
+  /**
+   * Kicks of the initial, recursive creation chain
+   *
+   * @param   {Object} config GoldenLayout Config
+   *
+   * @returns {void}
+   */
+  _create(config) {
+    let errorMsg;
 
-            throw new ConfigurationError(errorMsg, config);
-        }
+    if (!(config.content instanceof Array)) {
+      if (config.content === undefined) {
+        errorMsg = "Missing setting 'content' on top level of configuration";
+      } else {
+        errorMsg = "Configuration parameter 'content' must be an array";
+      }
 
-        if (config.content.length > 1) {
-            errorMsg = "Top level content can't contain more then one element.";
-            throw new ConfigurationError(errorMsg, config);
-        }
-
-        this.root = new items.Root(
-            this,
-            { content: config.content },
-            this.container
-        );
-        this.root.callDownwards('_$init');
-
-        if (config.maximisedItemId === '__glMaximised') {
-            this.root.getItemsById(config.maximisedItemId)[0].toggleMaximise();
-        }
+      throw new ConfigurationError(errorMsg, config);
     }
 
-    /**
-     * Called when the window is closed or the user navigates away
-     * from the page
-     *
-     * @returns {void}
-     */
-    _onUnload() {
-        if (this.config.settings.closePopoutsOnUnload === true) {
-            for (var i = 0; i < this.openPopouts.length; i++) {
-                this.openPopouts[i].close();
-            }
-        }
+    if (config.content.length > 1) {
+      errorMsg = "Top level content can't contain more then one element.";
+      throw new ConfigurationError(errorMsg, config);
     }
 
-    /**
-     * Adjusts the number of columns to be lower to fit the screen and still maintain minItemWidth.
-     *
-     * @returns {void}
-     */
-    _adjustColumnsResponsive() {
-        // If there is no min width set, or not content items, do nothing.
-        if (
-            !this._useResponsiveLayout() ||
-            this._updatingColumnsResponsive ||
-            !this.config.dimensions ||
-            !this.config.dimensions.minItemWidth ||
-            this.root.contentItems.length === 0 ||
-            !this.root.contentItems[0].isRow
-        ) {
-            this._firstLoad = false;
-            return;
-        }
+    this.root = new items.Root(
+      this,
+      { content: config.content },
+      this.container
+    );
+    this.root.callDownwards('_$init');
 
-        this._firstLoad = false;
+    if (config.maximisedItemId === '__glMaximised') {
+      this.root.getItemsById(config.maximisedItemId)[0].toggleMaximise();
+    }
+  }
 
-        // If there is only one column, do nothing.
-        var columnCount = this.root.contentItems[0].contentItems.length;
-        if (columnCount <= 1) {
-            return;
-        }
+  /**
+   * Called when the window is closed or the user navigates away
+   * from the page
+   *
+   * @returns {void}
+   */
+  _onUnload() {
+    if (this.config.settings.closePopoutsOnUnload === true) {
+      for (let i = 0; i < this.openPopouts.length; i++) {
+        this.openPopouts[i].close();
+      }
+    }
+  }
 
-        // If they all still fit, do nothing.
-        var minItemWidth = this.config.dimensions.minItemWidth;
-        var totalMinWidth = columnCount * minItemWidth;
-        if (totalMinWidth <= this.width) {
-            return;
-        }
-
-        // Prevent updates while it is already happening.
-        this._updatingColumnsResponsive = true;
-
-        // Figure out how many columns to stack, and put them all in the first stack container.
-        var finalColumnCount = Math.max(
-            Math.floor(this.width / minItemWidth),
-            1
-        );
-        var stackColumnCount = columnCount - finalColumnCount;
-
-        var rootContentItem = this.root.contentItems[0];
-        var firstStackContainer = this._findAllStackContainers()[0];
-        for (var i = 0; i < stackColumnCount; i++) {
-            // Stack from right.
-            var column =
-                rootContentItem.contentItems[
-                    rootContentItem.contentItems.length - 1
-                ];
-            this._addChildContentItemsToContainer(firstStackContainer, column);
-        }
-
-        this._updatingColumnsResponsive = false;
+  /**
+   * Adjusts the number of columns to be lower to fit the screen and still maintain minItemWidth.
+   *
+   * @returns {void}
+   */
+  _adjustColumnsResponsive() {
+    // If there is no min width set, or not content items, do nothing.
+    if (
+      !this._useResponsiveLayout() ||
+      this._updatingColumnsResponsive ||
+      !this.config.dimensions ||
+      !this.config.dimensions.minItemWidth ||
+      this.root.contentItems.length === 0 ||
+      !this.root.contentItems[0].isRow
+    ) {
+      this._firstLoad = false;
+      return;
     }
 
-    /**
-     * Determines if responsive layout should be used.
-     *
-     * @returns {bool} - True if responsive layout should be used; otherwise false.
-     */
-    _useResponsiveLayout() {
-        return (
-            this.config.settings &&
-            (this.config.settings.responsiveMode == 'always' ||
-                (this.config.settings.responsiveMode == 'onload' &&
-                    this._firstLoad))
-        );
+    this._firstLoad = false;
+
+    // If there is only one column, do nothing.
+    const columnCount = this.root.contentItems[0].contentItems.length;
+    if (columnCount <= 1) {
+      return;
     }
 
-    /**
-     * Adds all children of a node to another container recursively.
-     * @param {object} container - Container to add child content items to.
-     * @param {object} node - Node to search for content items.
-     * @returns {void}
-     */
-    _addChildContentItemsToContainer(container, node) {
-        if (node.type === 'stack') {
-            node.contentItems.forEach(function(item) {
-                container.addChild(item);
-                node.removeChild(item, true);
-            });
-        } else {
-            node.contentItems.forEach(item => {
-                this._addChildContentItemsToContainer(container, item);
-            });
-        }
+    // If they all still fit, do nothing.
+    const minItemWidth = this.config.dimensions.minItemWidth;
+    const totalMinWidth = columnCount * minItemWidth;
+    if (totalMinWidth <= this.width) {
+      return;
     }
 
-    /**
-     * Finds all the stack containers.
-     * @returns {array} - The found stack containers.
-     */
-    _findAllStackContainers() {
-        var stackContainers = [];
-        this._findAllStackContainersRecursive(stackContainers, this.root);
+    // Prevent updates while it is already happening.
+    this._updatingColumnsResponsive = true;
 
-        return stackContainers;
+    // Figure out how many columns to stack, and put them all in the first stack container.
+    const finalColumnCount = Math.max(Math.floor(this.width / minItemWidth), 1);
+    const stackColumnCount = columnCount - finalColumnCount;
+
+    const rootContentItem = this.root.contentItems[0];
+    const firstStackContainer = this._findAllStackContainers()[0];
+    for (let i = 0; i < stackColumnCount; i++) {
+      // Stack from right.
+      const column =
+        rootContentItem.contentItems[rootContentItem.contentItems.length - 1];
+      this._addChildContentItemsToContainer(firstStackContainer, column);
     }
 
-    /**
-     * Finds all the stack containers.
-     *
-     * @param {array} - Set of containers to populate.
-     * @param {object} - Current node to process.
-     *
-     * @returns {void}
-     */
-    _findAllStackContainersRecursive(stackContainers, node) {
-        node.contentItems.forEach(item => {
-            if (item.type == 'stack') {
-                stackContainers.push(item);
-            } else if (!item.isComponent) {
-                this._findAllStackContainersRecursive(stackContainers, item);
-            }
-        });
+    this._updatingColumnsResponsive = false;
+  }
+
+  /**
+   * Determines if responsive layout should be used.
+   *
+   * @returns {bool} - True if responsive layout should be used; otherwise false.
+   */
+  _useResponsiveLayout() {
+    return (
+      this.config.settings &&
+      (this.config.settings.responsiveMode == 'always' ||
+        (this.config.settings.responsiveMode == 'onload' && this._firstLoad))
+    );
+  }
+
+  /**
+   * Adds all children of a node to another container recursively.
+   * @param {object} container - Container to add child content items to.
+   * @param {object} node - Node to search for content items.
+   * @returns {void}
+   */
+  _addChildContentItemsToContainer(container, node) {
+    if (node.type === 'stack') {
+      node.contentItems.forEach(item => {
+        container.addChild(item);
+        node.removeChild(item, true);
+      });
+    } else {
+      node.contentItems.forEach(item => {
+        this._addChildContentItemsToContainer(container, item);
+      });
     }
+  }
+
+  /**
+   * Finds all the stack containers.
+   * @returns {array} - The found stack containers.
+   */
+  _findAllStackContainers() {
+    const stackContainers = [];
+    this._findAllStackContainersRecursive(stackContainers, this.root);
+
+    return stackContainers;
+  }
+
+  /**
+   * Finds all the stack containers.
+   *
+   * @param {array} - Set of containers to populate.
+   * @param {object} - Current node to process.
+   *
+   * @returns {void}
+   */
+  _findAllStackContainersRecursive(stackContainers, node) {
+    node.contentItems.forEach(item => {
+      if (item.type == 'stack') {
+        stackContainers.push(item);
+      } else if (!item.isComponent) {
+        this._findAllStackContainersRecursive(stackContainers, item);
+      }
+    });
+  }
 }
 
 GoldenLayout.utils = utils;

@@ -1,5 +1,5 @@
 export default {
-    isClosable: true,
-    reorderEnabled: true,
-    title: ''
+  isClosable: true,
+  reorderEnabled: true,
+  title: ''
 };
